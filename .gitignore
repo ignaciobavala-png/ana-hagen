@@ -51,8 +51,5 @@ pnpm-debug.log*
 .cache/
 .turbo/
 
-# Media — videos are large binaries, serve via CDN or upload separately
-# The folder is tracked via .gitkeep; only add the actual video files here
-public/video/*.mp4
-public/video/*.mov
-public/video/*.webm
+# Media — large binaries, serve via CDN or YouTube
+public/video/
