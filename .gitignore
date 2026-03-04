@@ -53,3 +53,4 @@ pnpm-debug.log*
 
 # Media — large binaries, never commit, upload to Vercel separately
 public/video/
+.vercel
