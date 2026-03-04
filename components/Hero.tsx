@@ -7,24 +7,16 @@ export default function Hero() {
 
   return (
     <section className="relative w-full min-h-screen flex flex-col justify-center items-center px-6 overflow-hidden">
-      {/* Fullscreen YouTube background video */}
-      <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
-        <iframe
-          src="https://www.youtube-nocookie.com/embed/gugAI3m8p6g?autoplay=1&mute=1&loop=1&playlist=gugAI3m8p6g&controls=0&showinfo=0&rel=0&modestbranding=1&playsinline=1"
-          allow="autoplay; encrypted-media"
-          allowFullScreen
-          title="Hero background"
-          style={{
-            position: "absolute",
-            top: "50%",
-            left: "50%",
-            width: "100%",
-            height: "100%",
-            transform: "translate(-50%, -50%) scale(1.5)",
-            border: "none",
-          }}
-        />
-      </div>
+      {/* Fullscreen background video */}
+      <video
+        autoPlay
+        muted
+        loop
+        playsInline
+        className="absolute inset-0 w-full h-full object-cover z-0"
+      >
+        <source src="/video/herov.mp4" type="video/mp4" />
+      </video>
 
       {/* Dark gradient overlay */}
       <div
