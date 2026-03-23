@@ -16,10 +16,10 @@ export async function updateContactConfig(data: {
     .from('contact_config')
     .update({
       booking_email: data.booking_email,
-      phone: data.phone || null,
-      instagram: data.instagram || null,
-      soundcloud: data.soundcloud || null,
-      resident_advisor: data.resident_advisor || null,
+      phone: data.phone || '',
+      instagram: data.instagram || '',
+      soundcloud: data.soundcloud || '',
+      resident_advisor: data.resident_advisor || '',
       updated_at: new Date().toISOString(),
     })
     .eq('id', 1)

@@ -18,7 +18,7 @@ export async function createVideo(data: { youtube_id: string; title: string }) {
 
   const { error } = await supabase.from('videos').insert({
     youtube_id: data.youtube_id.trim(),
-    title: data.title.trim() || null,
+    title: data.title.trim() || '',
     sort_order: nextOrder,
     published: true,
   })
@@ -34,7 +34,7 @@ export async function updateVideo(id: string, data: { youtube_id: string; title:
 
   const { error } = await supabase
     .from('videos')
-    .update({ youtube_id: data.youtube_id.trim(), title: data.title.trim() || null, published: data.published })
+    .update({ youtube_id: data.youtube_id.trim(), title: data.title.trim() || '', published: data.published })
     .eq('id', id)
 
   if (error) return { error: 'Error al actualizar video' }
