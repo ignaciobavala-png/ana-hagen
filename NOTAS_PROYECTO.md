@@ -7,10 +7,10 @@
 - **Email booking:** bookinganahagen@gmail.com
 
 ## Stack
-- Next.js 14 (App Router)
+- Next.js 16 (App Router)
 - TypeScript
 - Tailwind CSS
-- Sin base de datos
+- Supabase (Postgres + Auth + Storage)
 - Deploy: Vercel CLI local (NO auto-deploy desde GitHub)
 
 ## Paleta de colores
@@ -20,51 +20,41 @@
 - Texto: #1A1A1A
 - Hover: #A00D24
 
-## Estructura de componentes
-- Hero.tsx — Video fullscreen local (/public/video/herov.mp4) + overlay + título
-- Dates.tsx — Fechas desde Google Sheets (gviz JSON, client-side fetch)
-- Videos.tsx — 4 iframes YouTube hardcodeados en grid 2x2
-- Booking.tsx — Sección rojo carmín con mailto: link
-- Footer.tsx — Instagram link + copyright
-
 ## Videos hardcodeados (YouTube IDs)
+Editables en `components/Videos.tsx` → array `VIDEO_IDS`:
 - SEHgRWobQVU
 - h7KmYYeH7zw
 - Sv6nqPmncFE
 - cZZQ21lkjdI
 
 ## Video del Hero
-- Archivo: public/video/herov.mp4 (3MB)
+- Archivo: public/video/herov.mp4 (~3 MB)
 - NO está en git (.gitignore)
-- Se sube a Vercel en cada deploy via CLI local
-- Comando de deploy: vercel --prod (siempre desde la carpeta local del proyecto)
+- Se sube a Vercel en cada deploy via CLI local (`vercel --prod`)
+- Alternativa: subir desde /dashboard/hero → queda en Supabase Storage
 
-## Google Sheets — Fechas
-- Columnas: Date | Venue | City | TicketLink | FlierURL
-- El Sheet debe estar público (Anyone with the link → Viewer)
-- Reemplazar YOUR_SHEET_ID en Dates.tsx con el ID real de Ana
-- FlierURL: imágenes subidas a Cloudinary (cloudinary.com, plan gratuito)
+## Supabase — Setup inicial
+1. Ir a https://supabase.com/dashboard → SQL Editor
+2. Ejecutar `supabase/setup.sql` completo
+3. Ejecutar `supabase/contact_config.sql` completo
+4. Authentication → Users → Add user (crear cuenta admin)
 
 ## Keep-alive Cron
 - vercel.json — cron diario a las 12:00 UTC
 - app/api/keep-alive/route.ts — responde { ok: true }
-- Previene que Supabase pause la DB (aunque este proyecto no usa Supabase, está como estándar Petra Labs)
+- Previene que Supabase pause el proyecto por inactividad (plan gratuito)
 
 ## Pendientes
-- [ ] Reemplazar YOUR_SHEET_ID en Dates.tsx con el ID real del Google Sheet de Ana
-- [ ] Ana debe crear su Google Sheet con las columnas correctas y compartirlo públicamente
-- [ ] Ana debe crear cuenta en Cloudinary para subir flyers
-- [ ] Agregar SoundCloud link en Footer.tsx cuando esté disponible
-- [ ] Agregar Resident Advisor link en Footer.tsx cuando esté disponible
-- [ ] Agregar OG image (app/opengraph-image) para compartir en redes sociales
+- [ ] Aplicar schema en Supabase (setup.sql + contact_config.sql)
+- [ ] Crear usuario admin en Supabase Auth
+- [ ] Configurar env vars en Vercel Dashboard
+- [ ] Agregar OG image (app/opengraph-image)
 - [ ] Configurar dominio custom en Vercel dashboard
-- [ ] Commitear .gitignore (tiene .vercel sin commitear)
+- [ ] Agregar SoundCloud link cuando Ana lo tenga
+- [ ] Agregar Resident Advisor link cuando Ana lo tenga
 
 ## Comandos útiles
 ```bash
-# Instalar dependencias
-pnpm install
-
 # Dev local
 pnpm dev
 

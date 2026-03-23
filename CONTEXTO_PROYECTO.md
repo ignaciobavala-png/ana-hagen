@@ -19,10 +19,9 @@
 | React | ^18 |
 | TypeScript | ^5 |
 | Tailwind CSS | ^3.4.1 |
+| Base de datos | Supabase (Postgres + Auth + Storage) |
 | Package manager | pnpm |
 | Deploy | Vercel CLI local (NO auto-deploy desde GitHub) |
-
-No hay base de datos. Los datos dinámicos (fechas) vienen de Google Sheets vía fetch client-side.
 
 ---
 
@@ -33,24 +32,60 @@ ana-hagen/
 ├── app/
 │   ├── api/
 │   │   └── keep-alive/
-│   │       └── route.ts          # Responde { ok: true } — cron de keep-alive
-│   ├── globals.css               # Estilos base + grain overlay + animaciones CSS
-│   ├── layout.tsx                # Fuentes, metadata, body.grain
-│   └── page.tsx                  # Orden de secciones: Hero → Dates → Videos → Booking → Footer
+│   │       └── route.ts               # Cron de keep-alive → { ok: true }
+│   ├── login/
+│   │   └── page.tsx                   # Login con Supabase Auth
+│   ├── dashboard/
+│   │   ├── layout.tsx                 # Nav del admin
+│   │   ├── page.tsx                   # Stats: eventos, bookings, suscriptores
+│   │   ├── events/
+│   │   │   ├── page.tsx               # Lista de eventos
+│   │   │   ├── new/page.tsx           # Crear evento
+│   │   │   └── [id]/page.tsx          # Editar evento
+│   │   ├── bookings/
+│   │   │   └── page.tsx               # Consultas de booking recibidas
+│   │   ├── hero/
+│   │   │   └── page.tsx               # Subir video/imagen del hero
+│   │   └── contact/
+│   │       └── page.tsx               # Editar email, teléfono, redes sociales
+│   ├── globals.css                    # Estilos base + grain overlay
+│   ├── layout.tsx                     # Fuentes, metadata, body.grain
+│   └── page.tsx                       # Hero → Dates → Videos → Booking → Footer
 ├── components/
-│   ├── Hero.tsx                  # Video fullscreen + overlay + título + CTA booking
-│   ├── Dates.tsx                 # Fechas desde Google Sheets (client-side fetch)
-│   ├── Videos.tsx                # Grid 2×2 de iframes YouTube
-│   ├── Booking.tsx               # Sección rojo carmín con mailto: link
-│   └── Footer.tsx                # Instagram + copyright
+│   ├── Hero.tsx                       # Video/imagen fullscreen desde Supabase Storage
+│   ├── HeroCTA.tsx                    # Botón CTA (client component)
+│   ├── Dates.tsx                      # Fechas desde tabla `events` de Supabase
+│   ├── Videos.tsx                     # Grid 2×2 de iframes YouTube (hardcodeados)
+│   ├── Booking.tsx                    # Sección booking con email y teléfono desde Supabase
+│   ├── BookingForm.tsx                # Formulario de consulta → tabla `booking_requests`
+│   ├── Footer.tsx                     # Redes sociales desde Supabase + copyright
+│   └── dashboard/
+│       ├── EventForm.tsx              # Formulario para crear/editar eventos
+│       ├── HeroUploader.tsx           # Upload a Supabase Storage bucket `hero`
+│       ├── ContactForm.tsx            # Editar contact_config
+│       └── LogoutButton.tsx           # Logout de Supabase Auth
+├── lib/
+│   ├── supabase/
+│   │   ├── client.ts                  # createClient() para uso client-side
+│   │   └── server.ts                  # createClient() + createServiceClient() para server
+│   └── actions/
+│       ├── booking.ts                 # submitBookingRequest, markBookingRead
+│       ├── events.ts                  # CRUD de eventos
+│       ├── hero.ts                    # Actualizar hero_config
+│       └── contact.ts                 # Actualizar contact_config
+├── types/
+│   └── database.ts                    # Tipos: Event, BookingRequest, Subscriber, HeroConfig
+├── supabase/
+│   ├── setup.sql                      # Schema completo: tablas, RLS, storage buckets
+│   └── contact_config.sql             # Tabla contact_config (separada para historial)
 ├── public/
 │   └── video/
-│       └── herov.mp4             # Video hero (~3 MB) — NO está en git
-├── next.config.js                # Permite imágenes remotas de img.youtube.com
-├── tailwind.config.ts            # Tokens de color y fuentes personalizados
-├── vercel.json                   # Cron diario keep-alive (0 12 * * *)
-├── NOTAS_PROYECTO.md             # Notas operativas del proyecto
-└── CONTEXTO_PROYECTO.md          # Este archivo
+│       └── herov.mp4                  # Video hero (~3 MB) — NO está en git
+├── proxy.ts                           # Auth guard: redirige /dashboard → /login si no hay sesión
+├── next.config.js
+├── tailwind.config.ts
+├── vercel.json                        # Cron diario keep-alive (0 12 * * *)
+└── .env.local                         # Variables de entorno locales (no en git)
 ```
 
 ---
@@ -61,8 +96,8 @@ ana-hagen/
 
 | Token Tailwind | Valor HEX | Uso |
 |----------------|-----------|-----|
-| `accent` | `#C8102E` | Rojo carmín — acento principal, sección Booking, hover de fechas |
-| `accent-dark` | `#A00D24` | Hover del acento |
+| `accent` | `#9B4EB8` | Violeta — acento principal, sección Booking, hover |
+| `accent-dark` | `#7A3A95` | Hover del acento |
 | `cream` | `#FAF7F2` | Fondo principal del sitio |
 | `card` | `#F2EDE6` | Fondo de la sección Dates |
 | `ink` | `#1A1A1A` | Texto principal |
@@ -76,76 +111,88 @@ ana-hagen/
 
 ### Efectos globales
 
-- **Grain overlay**: pseudoelemento `::before` en `body.grain` — SVG de ruido fractal con opacidad 0.035, animado con `@keyframes grain` (0.5s steps). Crea textura analógica en toda la página.
-- **Scroll suave**: `html { scroll-behavior: smooth }` — los CTA de la Hero hacen scroll a `#booking`.
+- **Grain overlay**: pseudoelemento `::before` en `body.grain` — SVG de ruido fractal con opacidad 0.035, animado con `@keyframes grain` (0.5s steps).
+- **Scroll suave**: `html { scroll-behavior: smooth }`.
 
 ---
 
-## Componentes
+## Base de datos — Supabase
+
+### Proyecto
+
+| Campo | Valor |
+|-------|-------|
+| URL | `NEXT_PUBLIC_SUPABASE_URL` en `.env.local` |
+| Proyecto | https://supabase.com/dashboard |
+
+### Tablas
+
+| Tabla | Descripción |
+|-------|-------------|
+| `events` | Fechas de shows (date, venue, city, ticket_link, flyer_url, published) |
+| `booking_requests` | Consultas recibidas del formulario público |
+| `subscribers` | Emails suscritos para notificaciones |
+| `hero_config` | Fila única (id=1): tipo y URL del media del hero |
+| `contact_config` | Fila única (id=1): email, teléfono, redes sociales |
+
+### Storage buckets
+
+| Bucket | Uso |
+|--------|-----|
+| `hero` | Video o imagen del hero (acceso público) |
+| `flyers` | Flyers de eventos (acceso público) |
+
+### RLS
+
+- `events`: lectura pública solo de publicados, escritura solo autenticados
+- `booking_requests`: insert público, lectura/update solo autenticados
+- `subscribers`: insert público, lectura solo autenticados
+- `hero_config`: lectura pública, update solo autenticados
+- `contact_config`: lectura pública, update solo autenticados
+
+### Aplicar schema
+
+1. Ir a https://supabase.com/dashboard → proyecto → SQL Editor
+2. Ejecutar `supabase/setup.sql` completo
+3. Ejecutar `supabase/contact_config.sql` completo
+
+### Crear usuario admin
+
+1. Supabase dashboard → Authentication → Users → Add user
+2. Email: el de Ana (o el tuyo para gestionar)
+3. Password: elegir uno seguro
+4. Con esas credenciales se accede a `/login` → `/dashboard`
+
+---
+
+## Componentes — resumen
 
 ### `Hero.tsx`
-- Video `<video autoPlay muted loop playsInline>` con `src="/video/herov.mp4"`.
-- Overlay: gradiente negro `rgba(0,0,0,0.45)` → `rgba(26,26,26,0.7)`.
-- Título `ANA HAGEN`: fuente Bebas Neue, color transparente con `-webkit-text-stroke: 3px #FAF7F2`. "HAGEN" tiene underline rojo carmín (posición absoluta).
-- Subtítulo: `DJ · Buenos Aires · Minimal Techno · House · Techno`.
-- CTA "BOOKING": botón crema que al hover se llena de rojo carmín con transición `translate-x`. Hace scroll a `#booking`.
-- Indicador de scroll: esquina inferior derecha, barra pulsante vertical.
+- Server component. Lee `hero_config` de Supabase (media_url + media_type).
+- Fallback: `/video/herov.mp4` local si Supabase no responde.
+- Renderiza `<video>` o `<img>` según `media_type`.
 
 ### `Dates.tsx`
-- Client component (`"use client"`).
-- Fetch a Google Sheets vía `gviz/tq?tqx=out:json` — parsea el JSONP manualmente.
-- **Estado pendiente**: `YOUR_SHEET_ID` en `SHEETS_URL` debe reemplazarse con el ID real.
-- Columnas del Sheet: `Date | Venue | City | TicketLink` (la 5ª columna `FlierURL` está en las notas pero no implementada en el código actual).
-- Estados: loading (skeleton), error, vacío ("PRÓXIMAMENTE"), lista de eventos.
-- Cada evento: número de día en rojo carmín (Bebas Neue, `2.5rem`), mes/año en ink/40, nombre del venue, ciudad, y botón "ENTRADAS" o badge "FREE".
+- Server component. Lee tabla `events` donde `published = true`, ordenado por fecha.
+- Estado vacío: "PRÓXIMAMENTE NUEVAS FECHAS".
+- Muestra: día (rojo carmín), mes/año, venue, ciudad, flyer thumbnail, botón entradas o badge FREE.
 
 ### `Videos.tsx`
-- Server component (sin `"use client"`).
-- 4 iframes de YouTube en grid `grid-cols-1 md:grid-cols-2`.
-- Usa `youtube-nocookie.com` con `rel=0&modestbranding=1`.
-- Cada iframe tiene `loading="lazy"` y un corner accent rojo carmín (cuadrado 4×4).
-
-**YouTube IDs hardcodeados:**
-```
-SEHgRWobQVU
-h7KmYYeH7zw
-Sv6nqPmncFE
-cZZQ21lkjdI
-```
+- Server component. 4 iframes YouTube hardcodeados en `VIDEO_IDS[]`.
+- Para cambiar videos: editar el array directamente en el archivo.
 
 ### `Booking.tsx`
-- Fondo `bg-accent` (rojo carmín), sección `id="booking"`.
-- Email `bookinganahagen@gmail.com` como enlace `mailto:` en fuente display grande (`clamp(1.5rem,4.5vw,3.5rem)`).
-- Al hover: texto cambia a ink, underline crema que crece.
-- Texto decorativo "BOOKING" de fondo a opacidad 7%.
-- Grid SVG decorativo esquina inferior derecha.
+- Server component. Lee `contact_config` de Supabase (booking_email, phone).
+- Fallback: `bookinganahagen@gmail.com` hardcodeado.
+- Incluye `<BookingForm />` (client component).
+
+### `BookingForm.tsx`
+- Client component. Formulario desplegable con campos: nombre, email, tipo de evento, fecha tentativa, mensaje.
+- Llama a Server Action `submitBookingRequest` → inserta en `booking_requests`.
 
 ### `Footer.tsx`
-- Fondo `bg-ink`, texto `cream`.
-- Copyright © 2025 Ana Hagen.
-- Links sociales: actualmente solo Instagram.
-- **Pendiente**: agregar SoundCloud y Resident Advisor cuando estén disponibles.
-
----
-
-## Datos dinámicos — Google Sheets
-
-### Setup requerido por la clienta
-
-1. Crear un Google Sheet con estas columnas exactas (fila 1 = headers):
-
-   | A | B | C | D |
-   |---|---|---|---|
-   | Date | Venue | City | TicketLink |
-
-2. Compartir el sheet como "Anyone with the link → Viewer".
-3. Copiar el ID del sheet (parte de la URL: `docs.google.com/spreadsheets/d/[ID]/edit`).
-4. Reemplazar `YOUR_SHEET_ID` en `components/Dates.tsx` línea 14.
-
-### Formato de datos
-- **Date**: ISO (ej. `2025-06-15`) o texto legible.
-- **TicketLink**: URL completa, o `—` para eventos gratuitos (mostrará badge "FREE").
-- La fila de headers es ignorada automáticamente si `date === "date"`.
+- Server component. Lee `contact_config` (instagram, soundcloud, resident_advisor).
+- Muestra solo los links que están configurados (no null).
 
 ---
 
@@ -154,7 +201,7 @@ cZZQ21lkjdI
 - Archivo: `public/video/herov.mp4` (~3 MB)
 - **NO está en git** (en `.gitignore`)
 - Se incluye automáticamente en cada `vercel --prod` porque el CLI sube todo `public/`
-- Si se pierde el archivo local, hay que regenerarlo o pedírselo a la clienta
+- Alternativa: subir el video desde el dashboard → `/dashboard/hero` → queda en Supabase Storage
 
 ---
 
@@ -174,46 +221,47 @@ git commit -m "descripción"
 git push
 ```
 
-### Importante
-- **GitHub** es solo backup de código — NO dispara deploys automáticos en Vercel.
-- Los deploys siempre se hacen con `vercel --prod` desde la máquina local para que el video quede incluido.
-- Si se hiciera deploy desde GitHub (sin el video en el repo), el hero quedaría sin video.
+### Variables de entorno en Vercel
+
+Deben estar configuradas en Vercel Dashboard → Project → Settings → Environment Variables:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 ### Repositorio
 - GitHub: https://github.com/ignaciobavala-png/ana-hagen.git
+- GitHub es solo backup — NO dispara deploys automáticos en Vercel.
 
 ---
 
 ## Keep-alive Cron
 
 - `vercel.json` define un cron `0 12 * * *` (12:00 UTC diario).
-- Llama a `/api/keep-alive` → `app/api/keep-alive/route.ts` → responde `{ ok: true }`.
-- Patrón estándar Petra Labs (aunque este proyecto no usa Supabase).
+- Llama a `/api/keep-alive` → responde `{ ok: true }`.
+- Previene que Supabase pause el proyecto por inactividad (plan gratuito pausa tras 1 semana sin requests).
 
 ---
 
 ## SEO / Metadata
 
 Definida en `app/layout.tsx`:
-```
-title: "Ana Hagen · DJ"
-description: "Ana Hagen — DJ from Buenos Aires. Minimal Techno, House, Techno. Booking & upcoming dates."
-openGraph: title + description + type: "website"
-```
+- title: `"Ana Hagen · DJ"`
+- description: `"Ana Hagen — DJ from Buenos Aires. Minimal Techno, House, Techno. Booking & upcoming dates."`
+- openGraph: title + description + type: "website"
 
-**Pendiente**: Agregar `app/opengraph-image` (imagen OG para compartir en redes).
+**Pendiente**: Agregar `app/opengraph-image` para preview al compartir en redes.
 
 ---
 
 ## Pendientes
 
-- [ ] Reemplazar `YOUR_SHEET_ID` en `Dates.tsx` con el ID real del Google Sheet de Ana
-- [ ] Ana debe crear su Google Sheet con las columnas correctas y compartirlo públicamente
-- [ ] Agregar SoundCloud link en `Footer.tsx` cuando esté disponible
-- [ ] Agregar Resident Advisor link en `Footer.tsx` cuando esté disponible
-- [ ] Agregar OG image (`app/opengraph-image`) para compartir en redes sociales
+- [ ] Aplicar schema en Supabase (setup.sql + contact_config.sql)
+- [ ] Crear usuario admin en Supabase Auth
+- [ ] Configurar env vars en Vercel Dashboard
+- [ ] Agregar OG image (`app/opengraph-image`)
 - [ ] Configurar dominio custom en Vercel dashboard
-- [ ] Commitear `.gitignore` (tiene `.vercel` sin commitear — ver `git status`)
+- [ ] Agregar SoundCloud link cuando Ana lo tenga
+- [ ] Agregar Resident Advisor link cuando Ana lo tenga
 
 ---
 

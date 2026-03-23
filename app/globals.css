@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 :root {
-  --accent: #C8102E;
-  --accent-dark: #A00D24;
+  --accent: #9B4EB8;
+  --accent-dark: #7A3A95;
   --cream: #FAF7F2;
   --card: #F2EDE6;
   --ink: #1A1A1A;
@@ -57,7 +57,7 @@ body {
 
 /* Geometric hero background */
 .hero-bg {
-  background: linear-gradient(135deg, #FAF7F2 0%, #F2EDE6 50%, #FAF2F3 100%);
+  background: linear-gradient(135deg, #FAF7F2 0%, #F2EDE6 50%, #F5F2FA 100%);
   position: relative;
   overflow: hidden;
 }
@@ -67,7 +67,7 @@ body {
   width: 700px;
   height: 700px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,16,46,0.12) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(155,78,184,0.12) 0%, transparent 70%);
   top: -200px;
   right: -200px;
   animation: float-1 18s ease-in-out infinite alternate;
@@ -79,7 +79,7 @@ body {
   width: 500px;
   height: 500px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,16,46,0.06) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(155,78,184,0.06) 0%, transparent 70%);
   bottom: -150px;
   left: -100px;
   animation: float-2 22s ease-in-out infinite alternate;
@@ -91,7 +91,7 @@ body {
   width: 300px;
   height: 300px;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(200,16,46,0.08) 0%, transparent 70%);
+  background: radial-gradient(circle, rgba(155,78,184,0.08) 0%, transparent 70%);
   top: 40%;
   left: 30%;
   animation: float-3 15s ease-in-out infinite alternate;
@@ -110,6 +110,10 @@ body {
   0%   { transform: translate(0, 0) scale(1); }
   100% { transform: translate(-30px, 30px) scale(0.9); }
 }
+
+/* Hide scrollbar (carousel) */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
 /* Marquee */
 .marquee-track {

@@ -33,3 +33,31 @@ export interface HeroConfig {
   media_url: string
   updated_at: string
 }
+
+export interface Video {
+  id: string
+  title: string | null
+  youtube_id: string
+  published: boolean
+  sort_order: number
+  created_at: string
+}
+
+export interface PlaylistTrack {
+  id: string
+  title: string
+  artist: string
+  soundcloud_url: string
+  cover_url: string | null
+  sort_order: number
+  published: boolean
+  created_at: string
+}
+
+export interface LiveConfig {
+  id: number
+  is_live: boolean
+  stream_title: string | null
+  started_at: string | null
+  updated_at: string
+}

@@ -9,7 +9,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <Link href="/dashboard" className="font-display text-xl tracking-tight">
           ANA HAGEN <span className="text-accent">·</span> ADMIN
         </Link>
-        <nav className="flex items-center gap-6 md:gap-8">
+        <nav className="flex flex-wrap items-center gap-4 md:gap-6">
           <Link
             href="/dashboard/events"
             className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
@@ -21,6 +21,24 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
           >
             Bookings
+          </Link>
+          <Link
+            href="/dashboard/videos"
+            className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
+          >
+            Videos
+          </Link>
+          <Link
+            href="/dashboard/playlist"
+            className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
+          >
+            Playlist
+          </Link>
+          <Link
+            href="/dashboard/live"
+            className="font-body text-xs tracking-[0.2em] uppercase text-accent hover:text-accent-dark transition-colors font-semibold"
+          >
+            En vivo
           </Link>
           <Link
             href="/dashboard/hero"
