@@ -154,7 +154,7 @@ export default function EventForm({ event }: EventFormProps) {
           type="checkbox"
           checked={published}
           onChange={(e) => setPublished(e.target.checked)}
-          className="w-4 h-4 accent-[#C8102E]"
+          className="w-4 h-4 accent-[#9B4EB8]"
         />
         <span className="font-body text-sm text-ink">
           Publicar en el sitio

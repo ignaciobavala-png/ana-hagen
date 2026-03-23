@@ -42,18 +42,18 @@ export default function BookingForm() {
     'bg-white/10 border border-cream/25 px-4 py-3 font-body text-sm text-cream placeholder:text-cream/40 focus:outline-none focus:border-cream/60 w-full'
 
   return (
-    <div className="mt-10 border-t border-cream/15 pt-8">
+    <div className="mt-10 border-t border-cream/30 pt-8">
       {/* Toggle */}
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
         className="flex items-center gap-3 group"
       >
-        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 group-hover:text-cream transition-colors">
-          Enviá tu consulta
+        <span className="font-body text-sm font-semibold tracking-[0.2em] uppercase text-cream group-hover:text-ink transition-colors">
+          Solicitar fecha
         </span>
         <span
-          className={`text-cream/40 group-hover:text-cream transition-all duration-300 ${open ? 'rotate-45' : ''}`}
+          className={`text-cream group-hover:text-ink text-lg leading-none transition-all duration-300 ${open ? 'rotate-45' : ''}`}
         >
           +
         </span>
