@@ -1,5 +1,6 @@
 import { createClient } from '@/lib/supabase/server'
 import HeroCTA from './HeroCTA'
+import HeroMedia from './HeroMedia'
 
 export default async function Hero() {
   let mediaUrl = '/video/herov.mp4'
@@ -23,24 +24,8 @@ export default async function Hero() {
 
   return (
     <section className="relative w-full min-h-screen flex flex-col justify-center items-center px-6 overflow-hidden">
-      {/* Fondo: video o imagen */}
-      {mediaType === 'video' ? (
-        <video
-          autoPlay
-          muted
-          loop
-          playsInline
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        >
-          <source src={mediaUrl} type="video/mp4" />
-        </video>
-      ) : (
-        <img
-          src={mediaUrl}
-          alt="Hero background"
-          className="absolute inset-0 w-full h-full object-cover z-0"
-        />
-      )}
+      {/* Fondo con parallax */}
+      <HeroMedia url={mediaUrl} type={mediaType} />
 
       {/* Overlay */}
       <div
@@ -55,7 +40,10 @@ export default async function Hero() {
       {/* Contenido */}
       <div className="relative z-20 text-center max-w-5xl w-full">
         {/* Línea decorativa superior */}
-        <div className="flex items-center justify-center gap-4 mb-5">
+        <div
+          className="hero-enter flex items-center justify-center gap-4 mb-5"
+          style={{ animationDelay: '0.3s' }}
+        >
           <div className="h-px w-16 bg-cream/40" />
           <span className="font-body text-xs tracking-[0.4em] uppercase text-cream/60">
             DJ · Artist
@@ -65,11 +53,12 @@ export default async function Hero() {
 
         {/* Título */}
         <h1
-          className="font-display text-[clamp(4rem,11vw,8.5rem)] leading-none tracking-tight select-none"
+          className="hero-enter font-display text-[clamp(5.5rem,18vw,8.5rem)] leading-none tracking-tight select-none"
           style={{
             color: 'transparent',
-            WebkitTextStroke: '3px #FAF7F2',
+            WebkitTextStroke: 'clamp(2px, 0.35vw, 3px) #FAF7F2',
             textShadow: '0 0 40px rgba(250,247,242,0.15)',
+            animationDelay: '0.5s',
           }}
         >
           ANA
@@ -85,20 +74,24 @@ export default async function Hero() {
 
         {/* Subtítulo */}
         <p
-          className="font-body text-sm md:text-base tracking-[0.3em] uppercase text-cream font-medium mt-6"
-          style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)' }}
+          className="hero-enter font-body text-xs sm:text-sm md:text-base tracking-[0.3em] uppercase text-cream font-medium mt-5"
+          style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)', animationDelay: '0.85s' }}
         >
-          DJ &nbsp;·&nbsp; Buenos Aires &nbsp;·&nbsp; Minimal Techno &nbsp;·&nbsp; House &nbsp;·&nbsp; Techno
+          <span className="sm:hidden">DJ · Buenos Aires</span>
+          <span className="hidden sm:inline">DJ · Buenos Aires · Minimal Techno · House · Techno</span>
         </p>
 
         {/* CTA */}
-        <div className="mt-8">
+        <div className="hero-enter mt-8" style={{ animationDelay: '1.1s' }}>
           <HeroCTA />
         </div>
       </div>
 
       {/* Indicador de scroll */}
-      <div className="absolute bottom-10 right-6 md:right-12 flex flex-col items-center gap-2 z-20">
+      <div
+        className="hero-enter absolute bottom-16 md:bottom-10 right-6 md:right-12 flex flex-col items-center gap-2 z-20"
+        style={{ animationDelay: '1.5s' }}
+      >
         <span className="font-body text-[10px] tracking-[0.3em] uppercase text-cream/40 rotate-90 origin-center mb-4">
           scroll
         </span>

@@ -43,7 +43,7 @@ function StreamPlayer() {
             />
           ))}
         </div>
-        <p className="font-body text-xs tracking-[0.25em] uppercase text-cream/30">
+        <p className="font-body text-xs tracking-[0.25em] uppercase text-cream/55">
           Conectando...
         </p>
       </div>
@@ -57,10 +57,10 @@ function StreamPlayer() {
           <span className="absolute inline-flex h-3 w-3 rounded-full bg-accent opacity-75 animate-ping" />
           <span className="relative inline-flex h-3 w-3 rounded-full bg-accent" />
         </div>
-        <p className="font-body text-xs tracking-[0.25em] uppercase text-cream/30">
+        <p className="font-body text-xs tracking-[0.25em] uppercase text-cream/55">
           Esperando video...
         </p>
-        <p className="font-body text-[10px] text-cream/20">
+        <p className="font-body text-[10px] text-cream/50">
           El audio puede estar activo
         </p>
       </div>

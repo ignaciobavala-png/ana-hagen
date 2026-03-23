@@ -11,7 +11,6 @@ interface Props {
   initial: LiveConfig
 }
 
-// Alturas aleatorias fijas para el visualizador (evita re-renders con Math.random)
 const BAR_HEIGHTS = [35, 60, 45, 80, 55, 70, 40, 90, 50, 65, 75, 45, 85, 55, 40, 70, 60, 50, 80, 35]
 
 export default function LiveViewer({ initial }: Props) {
@@ -20,6 +19,7 @@ export default function LiveViewer({ initial }: Props) {
   const [joining, setJoining] = useState(false)
   const [joined, setJoined] = useState(false)
   const [joinError, setJoinError] = useState(false)
+  const [expanded, setExpanded] = useState(false)
 
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL
 
@@ -36,6 +36,7 @@ export default function LiveViewer({ initial }: Props) {
             setJoined(false)
             setToken(null)
             setJoinError(false)
+            setExpanded(false)
           }
         }
       )
@@ -61,82 +62,106 @@ export default function LiveViewer({ initial }: Props) {
     }
   }, [])
 
-  /* ─── ESTADO OFFLINE ─────────────────────────────────────── */
+  /* ─── ESTADO OFFLINE: pestaña colapsable ─────────────────── */
   if (!config.is_live) {
     return (
-      <section id="live" className="bg-ink relative overflow-hidden">
+      <div id="live" className="border-t border-cream/[0.14]">
 
-        {/* Barra superior OFFLINE */}
-        <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3 border-b border-cream/5">
-          <span className="relative flex h-2.5 w-2.5 shrink-0">
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cream/20" />
+        {/* Tab header — siempre visible */}
+        <button
+          onClick={() => setExpanded(v => !v)}
+          className="w-full flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3.5 bg-[#191919] hover:bg-[#202020] transition-colors duration-200 group"
+          aria-expanded={expanded}
+        >
+          {/* Punto rojo pulsante */}
+          <span className="relative flex h-2 w-2 shrink-0">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-60" />
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500/70" />
           </span>
-          <span className="font-display text-lg tracking-[0.25em] text-cream/30">LIVE</span>
-          <span className="font-body text-xs text-cream/20 tracking-widest uppercase ml-1">· Próximamente</span>
-        </div>
 
-        {/* Contenido principal */}
-        <div className="relative flex flex-col md:flex-row items-center justify-between gap-10 px-6 md:px-12 lg:px-24 py-20 md:py-28">
+          <span className="font-display text-2xl tracking-[0.3em] text-cream/70 group-hover:text-cream/90 transition-colors duration-200">
+            LIVE
+          </span>
 
-          {/* Fondo: texto decorativo */}
-          <div
-            className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+          <span className="font-body text-xs tracking-[0.25em] uppercase text-cream/35 group-hover:text-cream/55 transition-colors duration-200">
+            · Próximamente
+          </span>
+
+          {/* Chevron */}
+          <span
+            className={`ml-auto text-cream/25 group-hover:text-cream/45 transition-all duration-300 ${expanded ? 'rotate-180' : ''}`}
             aria-hidden="true"
           >
-            <span className="font-display text-[clamp(6rem,22vw,18rem)] leading-none tracking-tight text-cream/[0.02] whitespace-nowrap">
-              EN VIVO
-            </span>
-          </div>
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
+              <path d="M2 4l4 4 4-4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </span>
+        </button>
 
-          {/* Texto izquierda */}
-          <div className="relative z-10 max-w-lg">
-            <p className="font-body text-xs tracking-[0.4em] uppercase text-accent mb-4">
-              Streaming en vivo
-            </p>
-            <h2 className="font-display text-[clamp(3rem,7vw,6rem)] leading-none tracking-tight text-cream mb-6">
-              SINTONIZÁ<br />EN VIVO
-            </h2>
-            <p className="font-body text-sm text-cream/40 leading-relaxed max-w-xs">
-              Cuando Ana esté tocando, vas a poder ver y escuchar su set en tiempo real, directo desde esta página.
-            </p>
-            <a
-              href="https://www.instagram.com/anahagen__/"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 mt-8 font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/30 hover:text-accent transition-colors duration-200 group"
-            >
-              <span>Seguir en Instagram</span>
-              <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
-            </a>
-          </div>
+        {/* Panel expandible */}
+        <div
+          className="grid transition-[grid-template-rows] duration-500 ease-in-out"
+          style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}
+        >
+          <div className="overflow-hidden">
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 px-6 md:px-12 lg:px-24 py-12 md:py-24" style={{ background: '#191919' }}>
 
-          {/* Visualizador de audio animado (decorativo) */}
-          <div className="relative z-10 flex items-end gap-1 h-32 md:h-40" aria-hidden="true">
-            {BAR_HEIGHTS.map((h, i) => (
+              {/* Fondo decorativo */}
               <div
-                key={i}
-                className="w-1.5 rounded-full bg-accent/20 animate-pulse"
-                style={{
-                  height: `${h}%`,
-                  animationDelay: `${(i * 0.08).toFixed(2)}s`,
-                  animationDuration: `${1.2 + (i % 5) * 0.3}s`,
-                }}
-              />
-            ))}
-            {/* Línea de base */}
-            <div className="absolute bottom-0 left-0 right-0 h-px bg-cream/5" />
+                className="absolute inset-0 flex items-center justify-center pointer-events-none select-none overflow-hidden"
+                aria-hidden="true"
+              >
+                <span className="font-display text-[clamp(5rem,18vw,14rem)] leading-none tracking-tight text-cream/[0.02] whitespace-nowrap">
+                  EN VIVO
+                </span>
+              </div>
+
+              {/* Texto */}
+              <div className="relative z-10 max-w-md">
+                <p className="font-body text-xs tracking-[0.4em] uppercase text-accent mb-4">Streaming en vivo</p>
+                <h2 className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none tracking-tight text-cream mb-5">
+                  SINTONIZÁ<br />EN VIVO
+                </h2>
+                <p className="font-body text-sm text-cream/40 leading-relaxed max-w-xs">
+                  Cuando Ana esté tocando, vas a poder ver y escuchar su set en tiempo real, directo desde esta página.
+                </p>
+                <a
+                  href="https://www.instagram.com/anahagen__/"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 mt-7 font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/55 hover:text-accent transition-colors duration-200 group"
+                >
+                  <span>Seguir en Instagram</span>
+                  <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
+                </a>
+              </div>
+
+              {/* Visualizador decorativo */}
+              <div className="relative z-10 flex items-end gap-1 h-20 md:h-36" aria-hidden="true">
+                {BAR_HEIGHTS.map((h, i) => (
+                  <div
+                    key={i}
+                    className="w-1.5 rounded-full bg-accent/15 animate-pulse"
+                    style={{
+                      height: `${h}%`,
+                      animationDelay: `${(i * 0.08).toFixed(2)}s`,
+                      animationDuration: `${1.2 + (i % 5) * 0.3}s`,
+                    }}
+                  />
+                ))}
+                <div className="absolute bottom-0 left-0 right-0 h-px bg-cream/5" />
+              </div>
+            </div>
+            <div className="h-px bg-gradient-to-r from-transparent via-accent/15 to-transparent" />
           </div>
         </div>
-
-        {/* Línea inferior decorativa */}
-        <div className="h-px bg-gradient-to-r from-transparent via-accent/20 to-transparent" />
-      </section>
+      </div>
     )
   }
 
   /* ─── ESTADO EN VIVO ─────────────────────────────────────── */
   return (
-    <section id="live" className="bg-ink text-cream relative overflow-hidden">
+    <section id="live" className="text-cream relative overflow-hidden" style={{ background: '#191919' }}>
 
       {/* Barra EN VIVO */}
       <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3 bg-accent">
@@ -176,7 +201,7 @@ export default function LiveViewer({ initial }: Props) {
               <p className="font-display text-[clamp(2rem,7vw,5rem)] leading-none tracking-tight text-cream">
                 ANA HAGEN
               </p>
-              <p className="font-body text-xs tracking-[0.4em] uppercase text-cream/30 mt-3">
+              <p className="font-body text-xs tracking-[0.4em] uppercase text-cream/55 mt-3">
                 Transmisión en vivo
                 {config.started_at && (
                   <> · {new Date(config.started_at).toLocaleTimeString('es-AR', { hour: '2-digit', minute: '2-digit' })}</>
@@ -211,23 +236,23 @@ export default function LiveViewer({ initial }: Props) {
 
         {joined && (!token || !livekitUrl) && (
           <div className="absolute inset-0 flex items-center justify-center">
-            <p className="font-body text-cream/30 text-xs tracking-widest uppercase">LiveKit no configurado</p>
+            <p className="font-body text-cream/55 text-xs tracking-widest uppercase">LiveKit no configurado</p>
           </div>
         )}
       </div>
 
       {joined && (
-        <div className="flex items-center justify-between px-6 md:px-12 lg:px-24 py-3 border-t border-cream/5">
+        <div className="flex items-center justify-between px-6 md:px-12 lg:px-24 py-3 border-t border-cream/[0.14]">
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-accent opacity-60" />
               <span className="relative inline-flex rounded-full h-2 w-2 bg-accent" />
             </span>
-            <span className="font-body text-xs text-cream/30 tracking-wide">En vivo</span>
+            <span className="font-body text-xs text-cream/55 tracking-wide">En vivo</span>
           </div>
           <button
             onClick={() => { setJoined(false); setToken(null) }}
-            className="font-body text-xs text-cream/20 hover:text-cream/50 transition-colors"
+            className="font-body text-xs text-cream/50 hover:text-cream/70 transition-colors"
           >
             Salir del stream
           </button>

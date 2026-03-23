@@ -32,12 +32,12 @@ export default async function Footer() {
     <footer className="bg-ink text-cream py-10 px-6 md:px-12 lg:px-24">
       <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
         <p className="font-body text-xs tracking-[0.2em] uppercase text-cream/30">
-          © 2026 Ana Hagen
+          © {new Date().getFullYear()} Ana Hagen
         </p>
 
         {socialLinks.length > 0 && (
           <nav aria-label="Social media links">
-            <ul className="flex items-center gap-6 md:gap-8">
+            <ul className="flex items-center gap-4 md:gap-8">
               {socialLinks.map((link) => (
                 <li key={link.label}>
                   <a

@@ -2,6 +2,7 @@
 
 import { useState, useRef } from 'react'
 import { Video } from '@/types/database'
+import ScrambleText from './ScrambleText'
 
 const IconPlay = () => (
   <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
@@ -38,14 +39,23 @@ export default function VideosCarousel({ videos }: { videos: Video[] }) {
   }
 
   return (
-    <section id="sets" className="bg-[#0f0f0f] py-20 md:py-32 overflow-hidden">
+    <section id="sets" data-reveal className="py-20 md:py-32 overflow-hidden relative border-t border-cream/[0.14]" style={{ background: 'linear-gradient(180deg, #171717 0%, #1f1f1f 100%)' }}>
+
+      {/* Section number watermark */}
+      <span
+        className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
+        style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
+        aria-hidden="true"
+      >
+        02
+      </span>
 
       {/* Header */}
-      <div className="flex items-end justify-between mb-12 border-b border-cream/[0.08] pb-6 px-6 md:px-12 lg:px-24">
+      <div className="flex items-end justify-between mb-12 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
         <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-          SETS
+          <ScrambleText text="SETS" />
         </h2>
-        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/20 mb-2">
+        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
           Videos
         </span>
       </div>
@@ -114,8 +124,8 @@ export default function VideosCarousel({ videos }: { videos: Video[] }) {
 
                     {/* Play button */}
                     <div className="absolute inset-0 flex items-center justify-center">
-                      <div className="w-16 h-16 rounded-full bg-accent flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xl shadow-accent/40">
-                        <span className="translate-x-0.5 text-cream">
+                      <div className="w-16 h-16 rounded-full bg-cream flex items-center justify-center transition-transform duration-200 group-hover:scale-110 shadow-2xl shadow-black/40">
+                        <span className="translate-x-0.5 text-ink">
                           <IconPlay />
                         </span>
                       </div>
@@ -123,7 +133,7 @@ export default function VideosCarousel({ videos }: { videos: Video[] }) {
 
                     {/* Bottom gradient + set number */}
                     <div className="absolute bottom-0 left-0 right-0 h-16 bg-gradient-to-t from-ink/70 to-transparent pointer-events-none" />
-                    <span className="absolute bottom-3 left-4 font-display text-[10px] tracking-[0.4em] text-cream/40">
+                    <span className="absolute bottom-3 left-4 font-display text-[10px] tracking-[0.4em] text-cream/60">
                       SET {String(idx + 1).padStart(2, '0')}
                     </span>
                   </div>

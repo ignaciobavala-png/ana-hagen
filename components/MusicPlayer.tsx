@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { PlaylistTrack } from '@/types/database'
 import { useSoundCloudWidget } from '@/lib/hooks/useSoundCloudWidget'
+import ScrambleText from './ScrambleText'
 
 interface Props {
   tracks: PlaylistTrack[]
@@ -69,16 +70,14 @@ export default function MusicPlayer({ tracks }: Props) {
     }
   }, [state.isPlaying]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Scroll carousel to active card
+  // Scroll carousel to center active card
   useEffect(() => {
     const container = carouselRef.current
     if (!container) return
     const cards = container.querySelectorAll<HTMLElement>('[data-card]')
     const card = cards[currentIndex]
     if (!card) return
-    const containerLeft = container.getBoundingClientRect().left
-    const cardLeft = card.getBoundingClientRect().left
-    const scrollTo = container.scrollLeft + cardLeft - containerLeft - (container.offsetWidth / 2) + (card.offsetWidth / 2)
+    const scrollTo = card.offsetLeft - (container.offsetWidth / 2) + (card.offsetWidth / 2)
     container.scrollTo({ left: scrollTo, behavior: 'smooth' })
   }, [currentIndex])
 
@@ -102,13 +101,18 @@ export default function MusicPlayer({ tracks }: Props) {
 
   /* ── ESTADO VACÍO ── */
   if (!currentTrack) return (
-    <section id="musica" className="bg-ink py-20 md:py-32 overflow-hidden">
-      <div className="px-6 md:px-12 lg:px-24">
-        <div className="flex items-end justify-between mb-12 border-b border-cream/10 pb-6">
+    <section id="musica" data-reveal className="py-20 md:py-32 overflow-hidden relative " style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
+      <span
+        className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
+        style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
+        aria-hidden="true"
+      >03</span>
+      <div className="px-6 md:px-12 lg:px-24 relative z-10">
+        <div className="flex items-end justify-between mb-12 border-b border-cream/[0.14] pb-6">
           <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-            ESCUCHÁ
+            <ScrambleText text="MUSIC" />
           </h2>
-          <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/20 mb-2">
+          <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
             Selección de Ana
           </span>
         </div>
@@ -120,7 +124,7 @@ export default function MusicPlayer({ tracks }: Props) {
           <div key={i} className="shrink-0 w-44 md:w-52" style={{ opacity: 1 - i * 0.15 }}>
             <div className="aspect-square bg-cream/[0.04] border border-cream/10 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full border border-cream/10 flex items-center justify-center">
-                <span className="translate-x-0.5 text-cream/20"><IconPlay size={18} /></span>
+                <span className="translate-x-0.5 text-cream/50"><IconPlay size={18} /></span>
               </div>
             </div>
             <div className="mt-3 space-y-2">
@@ -132,7 +136,7 @@ export default function MusicPlayer({ tracks }: Props) {
       </div>
 
       <div className="px-6 md:px-12 lg:px-24 mt-10 border-t border-cream/10 pt-6">
-        <p className="font-body text-[10px] tracking-[0.4em] uppercase text-cream/20">
+        <p className="font-body text-[10px] tracking-[0.4em] uppercase text-cream/50">
           Ana está preparando su selección · Próximamente
         </p>
       </div>
@@ -141,14 +145,21 @@ export default function MusicPlayer({ tracks }: Props) {
 
   /* ── REPRODUCTOR ── */
   return (
-    <section id="musica" className="bg-ink py-20 md:py-28 overflow-hidden">
+    <section id="musica" data-reveal className="py-20 md:py-28 overflow-hidden relative " style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
+
+      {/* Section number watermark */}
+      <span
+        className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
+        style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
+        aria-hidden="true"
+      >03</span>
 
       {/* Header */}
-      <div className="flex items-end justify-between mb-10 md:mb-12 border-b border-cream/10 pb-6 px-6 md:px-12 lg:px-24">
+      <div className="flex items-end justify-between mb-10 md:mb-12 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
         <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-          ESCUCHÁ
+          <ScrambleText text="MUSIC" />
         </h2>
-        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/20 mb-2">
+        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
           Selección de Ana
         </span>
       </div>
@@ -156,7 +167,7 @@ export default function MusicPlayer({ tracks }: Props) {
       {/* Carousel */}
       <div
         ref={carouselRef}
-        className="flex gap-4 md:gap-5 overflow-x-auto pb-2 px-6 md:px-12 lg:px-24 no-scrollbar"
+        className="flex gap-4 md:gap-6 overflow-x-auto pb-2 no-scrollbar px-[10vw] sm:px-6 md:px-12 lg:px-24"
         style={{ scrollSnapType: 'x mandatory' }}
       >
         {tracks.map((track, idx) => {
@@ -168,8 +179,8 @@ export default function MusicPlayer({ tracks }: Props) {
               key={track.id}
               data-card=""
               onClick={() => handleTrackClick(idx)}
-              style={{ scrollSnapAlign: 'start' }}
-              className={`group shrink-0 w-44 md:w-52 lg:w-56 text-left transition-all duration-300 focus:outline-none ${
+              style={{ scrollSnapAlign: 'center' }}
+              className={`group shrink-0 w-[80vw] sm:w-44 md:w-48 lg:w-56 text-left transition-all duration-300 focus:outline-none ${
                 active ? 'opacity-100 scale-100' : 'opacity-40 hover:opacity-70 scale-[0.98]'
               }`}
             >
@@ -206,10 +217,8 @@ export default function MusicPlayer({ tracks }: Props) {
                       ))}
                     </div>
                   ) : (
-                    <div className={`w-14 h-14 rounded-full flex items-center justify-center transition-transform duration-200 group-hover:scale-105 ${
-                      active ? 'bg-accent' : 'bg-cream'
-                    }`}>
-                      <span className={`translate-x-0.5 ${active ? 'text-cream' : 'text-ink'}`}>
+                    <div className="w-14 h-14 rounded-full bg-cream flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
+                      <span className="translate-x-0.5 text-ink">
                         <IconPlay size={22} />
                       </span>
                     </div>
@@ -227,7 +236,7 @@ export default function MusicPlayer({ tracks }: Props) {
                 }`}>
                   {track.title}
                 </p>
-                <p className="font-body text-[11px] text-cream/25 mt-1 truncate">{track.artist}</p>
+                <p className="font-body text-[11px] text-cream/55 mt-1 truncate">{track.artist}</p>
               </div>
             </button>
           )
@@ -235,7 +244,7 @@ export default function MusicPlayer({ tracks }: Props) {
       </div>
 
       {/* Player bar */}
-      <div className="mt-10 px-6 md:px-12 lg:px-24 border-t border-cream/[0.08] pt-7">
+      <div className="mt-10 px-6 md:px-12 lg:px-24 border-t border-cream/[0.14] pt-7">
 
         {/* Progress bar */}
         <div
@@ -252,45 +261,46 @@ export default function MusicPlayer({ tracks }: Props) {
           />
         </div>
 
-        <div className="flex items-center gap-5 md:gap-8">
+        {/* Mobile: título centrado + controles abajo */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
 
-          {/* Current track info */}
-          <div className="min-w-0 flex-1">
-            <p className={`font-body text-[10px] tracking-[0.35em] uppercase mb-1 ${state.isPlaying ? 'text-accent' : 'text-cream/20'}`}>
+          {/* Track info */}
+          <div className="min-w-0 flex-1 text-center sm:text-left">
+            <p className={`font-body text-[10px] tracking-[0.35em] uppercase mb-1 ${state.isPlaying ? 'text-accent' : 'text-cream/50'}`}>
               {state.isPlaying ? '▶ Reproduciendo' : 'En pausa'}
             </p>
-            <p className="font-display text-lg md:text-2xl leading-tight tracking-wide text-cream truncate">
+            <p className="font-display text-xl md:text-2xl leading-tight tracking-wide text-cream truncate">
               {currentTrack.title}
             </p>
-            <p className="font-body text-xs text-cream/30 mt-0.5 truncate">{currentTrack.artist}</p>
+            <p className="font-body text-xs text-cream/60 mt-0.5 truncate">{currentTrack.artist}</p>
           </div>
 
-          {/* Controls */}
-          <div className="flex items-center gap-4 shrink-0">
-            <button onClick={handlePrev} className="text-cream/25 hover:text-cream/70 transition-colors" aria-label="Anterior">
+          {/* Controls row */}
+          <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-4 shrink-0">
+            <button onClick={handlePrev} className="p-3 -m-3 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Anterior">
               <IconPrev />
             </button>
 
             <button
               onClick={toggle}
-              className="w-12 h-12 rounded-full bg-accent hover:bg-accent-dark flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-accent/20"
+              className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-accent hover:bg-accent-dark flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-accent/30"
               aria-label={state.isPlaying ? 'Pausar' : 'Reproducir'}
             >
               <span className={state.isPlaying ? '' : 'translate-x-0.5'}>
-                {state.isPlaying ? <IconPause size={18} /> : <IconPlay size={18} />}
+                {state.isPlaying ? <IconPause size={20} /> : <IconPlay size={20} />}
               </span>
             </button>
 
-            <button onClick={handleNext} className="text-cream/25 hover:text-cream/70 transition-colors" aria-label="Siguiente">
+            <button onClick={handleNext} className="p-3 -m-3 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Siguiente">
               <IconNext />
             </button>
-          </div>
 
-          {/* Time */}
-          <div className="hidden sm:flex items-center gap-1 shrink-0">
-            <span className="font-mono text-[10px] text-cream/20 tabular-nums">{formatTime(state.position)}</span>
-            <span className="font-mono text-[10px] text-cream/10">/</span>
-            <span className="font-mono text-[10px] text-cream/20 tabular-nums">{state.duration > 0 ? formatTime(state.duration) : '--:--'}</span>
+            {/* Time — visible en mobile también */}
+            <div className="flex items-center gap-1 ml-2">
+              <span className="font-mono text-[10px] text-cream/50 tabular-nums">{formatTime(state.position)}</span>
+              <span className="font-mono text-[10px] text-cream/30">/</span>
+              <span className="font-mono text-[10px] text-cream/50 tabular-nums">{state.duration > 0 ? formatTime(state.duration) : '--:--'}</span>
+            </div>
           </div>
 
           {/* SoundCloud link */}
@@ -298,7 +308,7 @@ export default function MusicPlayer({ tracks }: Props) {
             href={currentTrack.soundcloud_url}
             target="_blank"
             rel="noopener noreferrer"
-            className="hidden md:block font-body text-[10px] tracking-[0.2em] uppercase text-cream/15 hover:text-cream/40 transition-colors"
+            className="hidden md:block font-body text-[10px] tracking-[0.2em] uppercase text-cream/45 hover:text-cream/80 transition-colors"
           >
             SoundCloud ↗
           </a>
