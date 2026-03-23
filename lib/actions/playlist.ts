@@ -22,7 +22,7 @@ export async function createTrack(data: { title: string; artist: string; soundcl
     published: true,
   })
 
-  if (error) return { error: 'Error al agregar track' }
+  if (error) return { error: error.message }
   revalidatePath('/')
   revalidatePath('/dashboard/playlist')
   return { success: true }

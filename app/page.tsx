@@ -16,10 +16,10 @@ export default function Home() {
       <ScrollLine />
       <Hero />
       <LiveSection />
-      <MarqueeStrip />
       <Dates />
       <Videos />
       <PlaylistSection />
+      <MarqueeStrip />
       <Booking />
       <Footer />
     </main>
