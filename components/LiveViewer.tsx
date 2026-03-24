@@ -70,7 +70,8 @@ export default function LiveViewer({ initial }: Props) {
         {/* Tab header — siempre visible */}
         <button
           onClick={() => setExpanded(v => !v)}
-          className="w-full flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3.5 bg-[#191919] hover:bg-[#202020] transition-colors duration-200 group"
+          className="w-full flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3.5 hover:bg-white/[0.02] transition-colors duration-200 group"
+          style={{ background: '#1f1f1f' }}
           aria-expanded={expanded}
         >
           {/* Punto rojo pulsante */}
@@ -104,7 +105,7 @@ export default function LiveViewer({ initial }: Props) {
           style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}
         >
           <div className="overflow-hidden">
-            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 px-6 md:px-12 lg:px-24 py-12 md:py-24" style={{ background: '#191919' }}>
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 px-6 md:px-12 lg:px-24 py-12 md:py-24" style={{ background: '#1f1f1f' }}>
 
               {/* Fondo decorativo */}
               <div
@@ -161,7 +162,7 @@ export default function LiveViewer({ initial }: Props) {
 
   /* ─── ESTADO EN VIVO ─────────────────────────────────────── */
   return (
-    <section id="live" className="text-cream relative overflow-hidden" style={{ background: '#191919' }}>
+    <section id="live" className="text-cream relative overflow-hidden" style={{ background: '#1f1f1f' }}>
 
       {/* Barra EN VIVO */}
       <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3 bg-accent">

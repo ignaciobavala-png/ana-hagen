@@ -18,6 +18,7 @@ function makeWidgetSrc(url: string) {
   return `https://w.soundcloud.com/player/?url=${encodeURIComponent(url)}&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false&buying=false&liking=false&download=false&sharing=false`
 }
 
+/* ── Icons ── */
 const IconPlay = ({ size = 20 }: { size?: number }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
     <path d="M8 5v14l11-7z" />
@@ -38,8 +39,27 @@ const IconNext = () => (
     <path d="M6 18l8.5-6L6 6v12zm2-8.14L11.03 12 8 14.14V9.86zM16 6h2v12h-2z" />
   </svg>
 )
-
-const WAVEFORM_HEIGHTS = [35, 60, 45, 80, 55, 70, 40, 90, 50, 65, 75, 45, 85, 55, 40]
+const IconRew = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M11 18V6l-8.5 6 8.5 6zm.5-6 8.5 6V6l-8.5 6z" />
+  </svg>
+)
+const IconFwd = () => (
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M4 18l8.5-6L4 6v12zm9-12v12l8.5-6L13 6z" />
+  </svg>
+)
+const IconShuffle = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+    <path d="M10.59 9.17L5.41 4 4 5.41l5.17 5.17 1.42-1.41zM14.5 4l2.04 2.04L4 18.59 5.41 20 17.96 7.46 20 9.5V4h-5.5zm.33 9.41l-1.41 1.41 3.13 3.13L14.5 20H20v-5.5l-2.04 2.04-3.13-3.13z" />
+  </svg>
+)
+const IconSpinner = ({ size = 20 }: { size?: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" className="animate-spin">
+    <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" strokeOpacity="0.2" />
+    <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+  </svg>
+)
 
 const CARD_GRADIENTS = [
   'from-[#2d1b4e] to-[#1a0d2e]',
@@ -49,8 +69,38 @@ const CARD_GRADIENTS = [
   'from-[#251348] to-[#130928]',
 ]
 
+/* ── Keyframes globales del reproductor ── */
+const MusicStyles = () => (
+  <style>{`
+    @keyframes eq { 0%,100% { transform: scaleY(0.25); } 50% { transform: scaleY(1); } }
+    @keyframes bleedIn { from { opacity: 0; } to { opacity: 1; } }
+  `}</style>
+)
+
+/* ── Equalizer animado (4 barras limpias) ── */
+function Equalizer() {
+  return (
+    <div className="flex items-end gap-[3px] h-5">
+        {[0, 0.18, 0.09, 0.27].map((delay, i) => (
+          <div
+            key={i}
+            className="w-[3px] bg-accent rounded-full origin-bottom"
+            style={{
+              height: '100%',
+              animation: `eq ${0.55 + i * 0.12}s ease-in-out infinite`,
+              animationDelay: `${delay}s`,
+            }}
+          />
+        ))}
+      </div>
+  )
+}
+
 export default function MusicPlayer({ tracks }: Props) {
   const [currentIndex, setCurrentIndex] = useState(0)
+  const [shuffled, setShuffled] = useState(false)
+  const [loading, setLoading] = useState(false)
+  const [hoverTime, setHoverTime] = useState<number | null>(null)
   const isFirstRender = useRef(true)
   const carouselRef = useRef<HTMLDivElement>(null)
   const { state, load, toggle, seekTo } = useSoundCloudWidget('sc-widget')
@@ -58,27 +108,37 @@ export default function MusicPlayer({ tracks }: Props) {
   const currentTrack = tracks[currentIndex]
   const progress = state.duration > 0 ? (state.position / state.duration) * 100 : 0
 
+  /* Cambio de track */
   useEffect(() => {
     if (isFirstRender.current) { isFirstRender.current = false; return }
     if (!currentTrack) return
+    setLoading(true)
     load(currentTrack.soundcloud_url, true)
   }, [currentIndex]) // eslint-disable-line react-hooks/exhaustive-deps
 
+  /* Fin de carga */
+  useEffect(() => {
+    if (state.ready) setLoading(false)
+  }, [state.ready])
+
+  /* Autoplay siguiente */
   useEffect(() => {
     if (!state.isPlaying && state.position > 0 && state.duration > 0 && state.position >= state.duration - 500) {
       handleNext()
     }
   }, [state.isPlaying]) // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Scroll carousel to center active card
+  /* Scroll carousel al card activo */
   useEffect(() => {
     const container = carouselRef.current
     if (!container) return
     const cards = container.querySelectorAll<HTMLElement>('[data-card]')
     const card = cards[currentIndex]
     if (!card) return
-    const scrollTo = card.offsetLeft - (container.offsetWidth / 2) + (card.offsetWidth / 2)
-    container.scrollTo({ left: scrollTo, behavior: 'smooth' })
+    container.scrollTo({
+      left: card.offsetLeft - (container.offsetWidth / 2) + (card.offsetWidth / 2),
+      behavior: 'smooth',
+    })
   }, [currentIndex])
 
   const handlePrev = useCallback(() => {
@@ -86,8 +146,13 @@ export default function MusicPlayer({ tracks }: Props) {
   }, [tracks.length])
 
   const handleNext = useCallback(() => {
-    setCurrentIndex(i => (i + 1 < tracks.length ? i + 1 : 0))
-  }, [tracks.length])
+    if (shuffled) {
+      const next = Math.floor(Math.random() * (tracks.length - 1))
+      setCurrentIndex(i => (next >= i ? next + 1 : next) % tracks.length)
+    } else {
+      setCurrentIndex(i => (i + 1 < tracks.length ? i + 1 : 0))
+    }
+  }, [tracks.length, shuffled])
 
   const handleTrackClick = useCallback((idx: number) => {
     if (idx === currentIndex) { toggle() } else { setCurrentIndex(idx) }
@@ -99,26 +164,29 @@ export default function MusicPlayer({ tracks }: Props) {
     seekTo(((e.clientX - rect.left) / rect.width) * state.duration)
   }, [state.duration, seekTo])
 
+  const handleProgressHover = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (state.duration === 0) return
+    const rect = e.currentTarget.getBoundingClientRect()
+    setHoverTime(((e.clientX - rect.left) / rect.width) * state.duration)
+  }, [state.duration])
+
+  const handleSkip = useCallback((ms: number) => {
+    const next = Math.max(0, Math.min(state.duration, state.position + ms))
+    seekTo(next)
+  }, [state.position, state.duration, seekTo])
+
   /* ── ESTADO VACÍO ── */
   if (!currentTrack) return (
-    <section id="musica" data-reveal className="py-20 md:py-32 overflow-hidden relative " style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
-      <span
-        className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
-        style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
-        aria-hidden="true"
-      >03</span>
+    <section id="musica" data-reveal className="py-20 md:py-32 overflow-hidden relative" style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
+      <span className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none" style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }} aria-hidden="true">03</span>
       <div className="px-6 md:px-12 lg:px-24 relative z-10">
         <div className="flex items-end justify-between mb-12 border-b border-cream/[0.14] pb-6">
           <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
             <ScrambleText text="MUSIC" />
           </h2>
-          <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
-            Selección de Ana
-          </span>
+          <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">Selección de Ana</span>
         </div>
       </div>
-
-      {/* Placeholder cards */}
       <div className="flex gap-4 md:gap-5 overflow-hidden px-6 md:px-12 lg:px-24">
         {[1, 2, 3, 4, 5].map(i => (
           <div key={i} className="shrink-0 w-44 md:w-52" style={{ opacity: 1 - i * 0.15 }}>
@@ -134,34 +202,48 @@ export default function MusicPlayer({ tracks }: Props) {
           </div>
         ))}
       </div>
-
       <div className="px-6 md:px-12 lg:px-24 mt-10 border-t border-cream/10 pt-6">
-        <p className="font-body text-[10px] tracking-[0.4em] uppercase text-cream/50">
-          Ana está preparando su selección · Próximamente
-        </p>
+        <p className="font-body text-[10px] tracking-[0.4em] uppercase text-cream/50">Ana está preparando su selección · Próximamente</p>
       </div>
     </section>
   )
 
   /* ── REPRODUCTOR ── */
   return (
-    <section id="musica" data-reveal className="py-20 md:py-28 overflow-hidden relative " style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
+    <section id="musica" className="py-20 md:py-28 overflow-hidden relative" style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
+      <MusicStyles />
 
-      {/* Section number watermark */}
-      <span
-        className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
-        style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
-        aria-hidden="true"
-      >03</span>
+      {/* Franja accent */}
+      <div className="absolute top-0 left-0 right-0 h-[3px] bg-accent z-20" aria-hidden="true" />
+
+      {/* Cover bleeding — arte del track activo, borroso al fondo */}
+      {currentTrack.cover_url && (
+        <div key={currentTrack.id} className="absolute inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+          <img
+            src={currentTrack.cover_url}
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover"
+            style={{
+              filter: 'blur(90px)',
+              transform: 'scale(1.4)',
+              animation: 'bleedIn 1.4s ease forwards',
+              opacity: 0,
+            }}
+          />
+          {/* Velo oscuro para que no tape el contenido */}
+          <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(31,31,31,0.82) 0%, rgba(23,23,23,0.93) 100%)' }} />
+        </div>
+      )}
+
+      {/* Watermark */}
+      <span className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none" style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }} aria-hidden="true">03</span>
 
       {/* Header */}
       <div className="flex items-end justify-between mb-10 md:mb-12 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
         <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
           <ScrambleText text="MUSIC" />
         </h2>
-        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
-          Selección de Ana
-        </span>
+        <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">Selección de Ana</span>
       </div>
 
       {/* Carousel */}
@@ -184,10 +266,12 @@ export default function MusicPlayer({ tracks }: Props) {
                 active ? 'opacity-100 scale-100' : 'opacity-40 hover:opacity-70 scale-[0.98]'
               }`}
             >
-              {/* Cover image */}
-              <div className={`relative aspect-square overflow-hidden border transition-colors duration-300 ${
-                active ? 'border-accent/50' : 'border-cream/10 group-hover:border-cream/20'
-              }`}>
+              <div
+                className={`relative aspect-square overflow-hidden border transition-all duration-500 ${
+                  active ? 'border-accent/50' : 'border-cream/10 group-hover:border-cream/20'
+                }`}
+                style={active && state.isPlaying ? { boxShadow: '0 8px 48px rgba(155,78,184,0.35)' } : undefined}
+              >
                 {track.cover_url ? (
                   <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover" />
                 ) : (
@@ -198,38 +282,22 @@ export default function MusicPlayer({ tracks }: Props) {
                   </div>
                 )}
 
-                {/* Overlay: play button or waveform */}
+                {/* Overlay */}
                 <div className={`absolute inset-0 bg-ink/70 flex items-center justify-center transition-opacity duration-300 ${
-                  isPlayingThis ? 'opacity-100' : active ? 'opacity-0 group-hover:opacity-100' : 'opacity-0 group-hover:opacity-100'
+                  isPlayingThis ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                 }`}>
                   {isPlayingThis ? (
-                    <div className="flex items-end gap-[3px] h-8">
-                      {WAVEFORM_HEIGHTS.map((h, i) => (
-                        <div
-                          key={i}
-                          className="w-[3px] bg-accent rounded-full animate-pulse"
-                          style={{
-                            height: `${h}%`,
-                            animationDelay: `${(i * 0.06).toFixed(2)}s`,
-                            animationDuration: `${0.6 + (i % 5) * 0.15}s`,
-                          }}
-                        />
-                      ))}
-                    </div>
+                    <Equalizer />
                   ) : (
                     <div className="w-14 h-14 rounded-full bg-cream flex items-center justify-center transition-transform duration-200 group-hover:scale-105">
-                      <span className="translate-x-0.5 text-ink">
-                        <IconPlay size={22} />
-                      </span>
+                      <span className="translate-x-0.5 text-ink"><IconPlay size={22} /></span>
                     </div>
                   )}
                 </div>
 
-                {/* Active indicator corner */}
                 {active && <div className="absolute top-0 right-0 w-3 h-3 bg-accent" aria-hidden="true" />}
               </div>
 
-              {/* Track info */}
               <div className="mt-3">
                 <p className={`font-display text-sm md:text-[15px] leading-snug tracking-wide truncate transition-colors duration-200 ${
                   active ? 'text-accent' : 'text-cream/50 group-hover:text-cream/80'
@@ -246,28 +314,46 @@ export default function MusicPlayer({ tracks }: Props) {
       {/* Player bar */}
       <div className="mt-10 px-6 md:px-12 lg:px-24 border-t border-cream/[0.14] pt-7">
 
-        {/* Progress bar */}
+        {/* Progress bar — zona de hit amplia */}
         <div
-          className="w-full h-px bg-cream/[0.08] cursor-pointer group relative mb-6"
+          className="w-full h-6 flex items-center cursor-pointer group relative mb-5"
           onClick={handleSeek}
+          onMouseMove={handleProgressHover}
+          onMouseLeave={() => setHoverTime(null)}
           role="slider"
           aria-label="Progreso de reproducción"
           aria-valuenow={progress}
         >
-          <div className="h-full bg-accent transition-none" style={{ width: `${progress}%` }} />
-          <div
-            className="absolute top-1/2 w-2.5 h-2.5 rounded-full bg-accent -translate-y-1/2 -translate-x-1/2 opacity-0 group-hover:opacity-100 transition-opacity duration-150"
-            style={{ left: `${progress}%` }}
-          />
+          {/* Track */}
+          <div className="w-full h-[2px] bg-cream/[0.08] relative">
+            {/* Fill */}
+            <div className="h-full bg-accent transition-none" style={{ width: `${progress}%` }} />
+            {/* Thumb */}
+            <div
+              className={`absolute top-1/2 w-2.5 h-2.5 rounded-full bg-accent -translate-y-1/2 -translate-x-1/2 transition-opacity duration-150 ${
+                state.isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+              }`}
+              style={{ left: `${progress}%` }}
+            />
+            {/* Hover time tooltip — solo desktop */}
+            {hoverTime !== null && (
+              <div
+                className="hidden sm:block absolute -top-7 -translate-x-1/2 font-mono text-[10px] text-cream/70 bg-ink/80 px-1.5 py-0.5 pointer-events-none whitespace-nowrap"
+                style={{ left: `${(hoverTime / state.duration) * 100}%` }}
+              >
+                {formatTime(hoverTime)}
+              </div>
+            )}
+          </div>
         </div>
 
-        {/* Mobile: título centrado + controles abajo */}
+        {/* Controls + info */}
         <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-8">
 
           {/* Track info */}
           <div className="min-w-0 flex-1 text-center sm:text-left">
             <p className={`font-body text-[10px] tracking-[0.35em] uppercase mb-1 ${state.isPlaying ? 'text-accent' : 'text-cream/50'}`}>
-              {state.isPlaying ? '▶ Reproduciendo' : 'En pausa'}
+              {loading ? 'Cargando…' : state.isPlaying ? '▶ Reproduciendo' : 'En pausa'}
             </p>
             <p className="font-display text-xl md:text-2xl leading-tight tracking-wide text-cream truncate">
               {currentTrack.title}
@@ -275,35 +361,89 @@ export default function MusicPlayer({ tracks }: Props) {
             <p className="font-body text-xs text-cream/60 mt-0.5 truncate">{currentTrack.artist}</p>
           </div>
 
-          {/* Controls row */}
-          <div className="flex items-center justify-center sm:justify-start gap-6 sm:gap-4 shrink-0">
-            <button onClick={handlePrev} className="p-3 -m-3 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Anterior">
-              <IconPrev />
-            </button>
+          {/* Controls — mobile: 2 filas / desktop: 1 fila */}
+          <div className="flex flex-col gap-3 sm:gap-0 shrink-0">
 
-            <button
-              onClick={toggle}
-              className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-accent hover:bg-accent-dark flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-accent/30"
-              aria-label={state.isPlaying ? 'Pausar' : 'Reproducir'}
-            >
-              <span className={state.isPlaying ? '' : 'translate-x-0.5'}>
-                {state.isPlaying ? <IconPause size={20} /> : <IconPlay size={20} />}
-              </span>
-            </button>
+            {/* Fila principal: prev | -15s | play | +15s | next */}
+            <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-4">
 
-            <button onClick={handleNext} className="p-3 -m-3 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Siguiente">
-              <IconNext />
-            </button>
+              {/* Shuffle — solo desktop */}
+              <button
+                onClick={() => setShuffled(v => !v)}
+                className={`hidden sm:block p-2 -m-2 transition-colors ${shuffled ? 'text-accent' : 'text-cream/35 hover:text-cream/70'}`}
+                aria-label="Shuffle"
+                title="Aleatorio"
+              >
+                <IconShuffle />
+              </button>
 
-            {/* Time — visible en mobile también */}
-            <div className="flex items-center gap-1 ml-2">
-              <span className="font-mono text-[10px] text-cream/50 tabular-nums">{formatTime(state.position)}</span>
-              <span className="font-mono text-[10px] text-cream/30">/</span>
-              <span className="font-mono text-[10px] text-cream/50 tabular-nums">{state.duration > 0 ? formatTime(state.duration) : '--:--'}</span>
+              <button onClick={handlePrev} className="p-2 -m-2 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Anterior">
+                <IconPrev />
+              </button>
+
+              <button
+                onClick={() => handleSkip(-15000)}
+                className="flex items-center gap-0.5 p-2 -m-2 text-cream/45 hover:text-cream/80 transition-colors"
+                aria-label="Retroceder 15 segundos"
+              >
+                <IconRew />
+                <span className="font-mono text-[9px] leading-none">15</span>
+              </button>
+
+              <button
+                onClick={toggle}
+                disabled={loading}
+                className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-accent hover:bg-accent-dark flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-accent/30 disabled:opacity-70"
+                aria-label={state.isPlaying ? 'Pausar' : 'Reproducir'}
+              >
+                {loading ? (
+                  <IconSpinner size={20} />
+                ) : (
+                  <span className={state.isPlaying ? '' : 'translate-x-0.5'}>
+                    {state.isPlaying ? <IconPause size={20} /> : <IconPlay size={20} />}
+                  </span>
+                )}
+              </button>
+
+              <button
+                onClick={() => handleSkip(15000)}
+                className="flex items-center gap-0.5 p-2 -m-2 text-cream/45 hover:text-cream/80 transition-colors"
+                aria-label="Adelantar 15 segundos"
+              >
+                <span className="font-mono text-[9px] leading-none">15</span>
+                <IconFwd />
+              </button>
+
+              <button onClick={handleNext} className="p-2 -m-2 text-cream/55 hover:text-cream/90 transition-colors" aria-label="Siguiente">
+                <IconNext />
+              </button>
+
+              {/* Time — solo desktop */}
+              <div className="hidden sm:flex items-center gap-1 ml-1">
+                <span className="font-mono text-[10px] text-cream/50 tabular-nums">{formatTime(state.position)}</span>
+                <span className="font-mono text-[10px] text-cream/30">/</span>
+                <span className="font-mono text-[10px] text-cream/50 tabular-nums">{state.duration > 0 ? formatTime(state.duration) : '--:--'}</span>
+              </div>
+            </div>
+
+            {/* Fila secundaria — solo mobile: shuffle ←—→ tiempo */}
+            <div className="flex items-center justify-between sm:hidden px-1">
+              <button
+                onClick={() => setShuffled(v => !v)}
+                className={`p-2 -m-2 transition-colors ${shuffled ? 'text-accent' : 'text-cream/30'}`}
+                aria-label="Shuffle"
+              >
+                <IconShuffle />
+              </button>
+              <div className="flex items-center gap-1">
+                <span className="font-mono text-[10px] text-cream/50 tabular-nums">{formatTime(state.position)}</span>
+                <span className="font-mono text-[10px] text-cream/30">/</span>
+                <span className="font-mono text-[10px] text-cream/50 tabular-nums">{state.duration > 0 ? formatTime(state.duration) : '--:--'}</span>
+              </div>
             </div>
           </div>
 
-          {/* SoundCloud link */}
+          {/* SoundCloud link — solo desktop */}
           <a
             href={currentTrack.soundcloud_url}
             target="_blank"
@@ -315,7 +455,7 @@ export default function MusicPlayer({ tracks }: Props) {
         </div>
       </div>
 
-      {/* Hidden SoundCloud iframe */}
+      {/* Hidden SC iframe */}
       {tracks.length > 0 && (
         <iframe
           id="sc-widget"
