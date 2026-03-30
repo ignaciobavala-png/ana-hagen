@@ -58,6 +58,7 @@ export interface LiveConfig {
   id: number
   is_live: boolean
   stream_title: string | null
+  youtube_id: string | null
   started_at: string | null
   updated_at: string
 }

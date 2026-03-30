@@ -21,7 +21,7 @@ export default function DatesSection({ events }: { events: Event[] }) {
   const [expanded, setExpanded] = useState(hasEvents)
 
   return (
-    <div id="dates" data-reveal className="border-t border-cream/[0.14]">
+    <div id="dates" className="border-t border-cream/[0.14]">
 
       {/* Tab header */}
       <button

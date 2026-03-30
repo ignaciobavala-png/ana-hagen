@@ -46,7 +46,7 @@ export default function VideosCarousel({ videos }: { videos: Video[] }) {
   }
 
   return (
-    <div id="sets" data-reveal className="border-t border-b border-cream/[0.14]" style={{ background: '#1f1f1f' }}>
+    <div id="sets" className="border-t border-cream/[0.14]" style={{ background: '#1f1f1f' }}>
 
       {/* Tab header */}
       <button

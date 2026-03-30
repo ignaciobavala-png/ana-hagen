@@ -1,11 +1,24 @@
 'use client'
 
 import { useState } from 'react'
-import dynamic from 'next/dynamic'
 import { LiveConfig } from '@/types/database'
 import { goLive, endLive } from '@/lib/actions/live'
 
-const LiveKitBroadcast = dynamic(() => import('@/components/LiveKitBroadcast'), { ssr: false })
+function extractYouTubeId(input: string): string | null {
+  const str = input.trim()
+  if (/^[a-zA-Z0-9_-]{11}$/.test(str)) return str
+  const patterns = [
+    /[?&]v=([a-zA-Z0-9_-]{11})/,
+    /youtu\.be\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/live\/([a-zA-Z0-9_-]{11})/,
+    /youtube\.com\/embed\/([a-zA-Z0-9_-]{11})/,
+  ]
+  for (const re of patterns) {
+    const m = str.match(re)
+    if (m) return m[1]
+  }
+  return null
+}
 
 interface Props {
   initial: LiveConfig | null
@@ -13,73 +26,36 @@ interface Props {
 
 export default function LiveControls({ initial }: Props) {
   const [config, setConfig] = useState<LiveConfig | null>(initial)
+  const [youtubeUrl, setYoutubeUrl] = useState('')
   const [title, setTitle] = useState('')
-  const [token, setToken] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
 
-  const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL
-
   const handleGoLive = async () => {
+    const youtubeId = extractYouTubeId(youtubeUrl)
+    if (!youtubeId) {
+      setError('URL de YouTube inválida. Pegá el link del stream o el ID del video.')
+      return
+    }
     setLoading(true)
     setError('')
-
-    const res = await fetch('/api/livekit/host-token', { method: 'POST' })
-    const data = await res.json()
-
-    if (data.error) {
-      setError(data.error)
-      setLoading(false)
-      return
-    }
-
-    const result = await goLive(title)
+    const result = await goLive(title, youtubeId)
     if (result.error) {
       setError(result.error)
-      setLoading(false)
-      return
+    } else {
+      setConfig(c => c ? { ...c, is_live: true, stream_title: title || null, youtube_id: youtubeId } : c)
+      setYoutubeUrl('')
+      setTitle('')
     }
-
-    setToken(data.token)
-    setConfig((c) => c ? { ...c, is_live: true, stream_title: title || null } : c)
     setLoading(false)
   }
 
   const handleEndLive = async () => {
     await endLive()
-    setToken(null)
-    setConfig((c) => c ? { ...c, is_live: false, stream_title: null } : c)
+    setConfig(c => c ? { ...c, is_live: false, stream_title: null, youtube_id: null } : c)
   }
 
-  const isLive = config?.is_live
-
-  if (!livekitUrl) {
-    return (
-      <div className="border border-ink/10 p-6 max-w-xl">
-        <p className="font-body text-sm text-ink/50">
-          LiveKit no está configurado. Agregá{' '}
-          <code className="font-mono text-xs bg-ink/5 px-1">NEXT_PUBLIC_LIVEKIT_URL</code>,{' '}
-          <code className="font-mono text-xs bg-ink/5 px-1">LIVEKIT_API_KEY</code> y{' '}
-          <code className="font-mono text-xs bg-ink/5 px-1">LIVEKIT_API_SECRET</code> al{' '}
-          <code className="font-mono text-xs bg-ink/5 px-1">.env.local</code>.
-        </p>
-      </div>
-    )
-  }
-
-  // Stream activo y esta sesión lo inició
-  if (isLive && token) {
-    return (
-      <LiveKitBroadcast
-        token={token}
-        serverUrl={livekitUrl}
-        onEnd={handleEndLive}
-      />
-    )
-  }
-
-  // Stream activo pero desde otra sesión
-  if (isLive) {
+  if (config?.is_live) {
     return (
       <div className="flex flex-col gap-4 max-w-xl">
         <div className="flex items-center gap-3 bg-accent px-5 py-4">
@@ -88,7 +64,15 @@ export default function LiveControls({ initial }: Props) {
             <span className="relative inline-flex rounded-full h-3 w-3 bg-cream" />
           </span>
           <span className="font-display text-xl tracking-[0.15em] text-cream">EN VIVO</span>
+          {config.stream_title && (
+            <span className="font-body text-sm text-cream/80 ml-1">· {config.stream_title}</span>
+          )}
         </div>
+        {config.youtube_id && (
+          <p className="font-body text-xs text-ink/40">
+            YouTube ID: <code className="font-mono bg-ink/5 px-1">{config.youtube_id}</code>
+          </p>
+        )}
         <button
           onClick={handleEndLive}
           className="bg-white border border-ink/20 text-ink font-body font-semibold text-sm tracking-[0.2em] uppercase px-8 py-3 hover:border-accent hover:text-accent transition-colors w-fit"
@@ -99,32 +83,42 @@ export default function LiveControls({ initial }: Props) {
     )
   }
 
-  // Idle — formulario para empezar
   return (
     <div className="flex flex-col gap-5 max-w-xl">
       <div className="flex flex-col gap-1">
         <label className="font-body text-xs tracking-[0.15em] uppercase text-ink/50">
-          Título de la transmisión <span className="text-ink/30">(opcional)</span>
+          URL del stream en YouTube <span className="text-red-400">*</span>
+        </label>
+        <input
+          type="text"
+          value={youtubeUrl}
+          onChange={e => { setYoutubeUrl(e.target.value); setError('') }}
+          placeholder="https://youtube.com/live/abc123 o el ID del video"
+          className="bg-white border border-ink/15 px-4 py-3 font-body text-sm text-ink focus:outline-none focus:border-accent"
+        />
+      </div>
+
+      <div className="flex flex-col gap-1">
+        <label className="font-body text-xs tracking-[0.15em] uppercase text-ink/50">
+          Título <span className="text-ink/30">(opcional)</span>
         </label>
         <input
           type="text"
           value={title}
-          onChange={(e) => setTitle(e.target.value)}
+          onChange={e => setTitle(e.target.value)}
           placeholder="Ej: Live set @ Club X · Buenos Aires"
           className="bg-white border border-ink/15 px-4 py-3 font-body text-sm text-ink focus:outline-none focus:border-accent"
         />
       </div>
 
-      {error && (
-        <p className="font-body text-xs text-accent">{error}</p>
-      )}
+      {error && <p className="font-body text-xs text-red-500">{error}</p>}
 
       <button
         onClick={handleGoLive}
-        disabled={loading}
+        disabled={loading || !youtubeUrl.trim()}
         className="bg-accent text-cream font-body font-semibold text-sm tracking-[0.2em] uppercase px-10 py-4 hover:bg-accent-dark transition-colors duration-200 disabled:opacity-50 w-fit"
       >
-        {loading ? 'Iniciando...' : 'Empezar transmisión'}
+        {loading ? 'Activando...' : 'Activar stream'}
       </button>
     </div>
   )
