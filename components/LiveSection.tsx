@@ -6,6 +6,7 @@ const FALLBACK: LiveConfig = {
   id: 1,
   is_live: false,
   stream_title: null,
+  youtube_id: null,
   started_at: null,
   updated_at: new Date().toISOString(),
 }
