@@ -11,6 +11,9 @@ const IconChevron = () => (
   </svg>
 )
 
+// Rotaciones determinísticas — varían lo suficiente para sentirse naturales
+const ROTATIONS = [-2.8, 3.1, -1.4, 2.5, -3.6, 1.7, -2.2, 3.9, -1.1, 2.3, -3.2, 1.9]
+
 function Lightbox({
   photos,
   activeIndex,
@@ -28,58 +31,64 @@ function Lightbox({
 }) {
   return (
     <div
-      className={`fixed inset-0 flex items-center justify-center p-6 md:p-16 ${closing ? 'gallery-overlay-out' : 'gallery-overlay-in'}`}
-      style={{ backgroundColor: '#111111', zIndex: 9999 }}
+      className={`fixed inset-0 flex items-center justify-center ${closing ? 'gallery-overlay-out' : 'gallery-overlay-in'}`}
+      style={{ backgroundColor: 'rgba(8, 8, 8, 0.82)', zIndex: 9999, backdropFilter: 'blur(3px)' }}
       onClick={onClose}
     >
-      {photos.length > 1 && (
-        <>
-          <button
-            onClick={e => { e.stopPropagation(); onPrev() }}
-            className="absolute left-4 md:left-8 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 text-2xl select-none"
-            aria-label="Anterior"
-          >
-            ←
-          </button>
-          <button
-            onClick={e => { e.stopPropagation(); onNext() }}
-            className="absolute right-4 md:right-8 top-1/2 -translate-y-1/2 w-10 h-10 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 text-2xl select-none"
-            aria-label="Siguiente"
-          >
-            →
-          </button>
-        </>
-      )}
-
       <div
         key={activeIndex}
-        className={`relative flex flex-col items-center gap-5 max-w-5xl w-full ${closing ? 'gallery-photo-out' : 'gallery-photo-in'}`}
+        className={`flex flex-col items-center gap-5 ${closing ? 'gallery-photo-out' : 'gallery-photo-in'}`}
         onClick={e => e.stopPropagation()}
       >
-        <button
-          onClick={onClose}
-          className="absolute -top-10 right-0 font-body text-[10px] tracking-[0.35em] uppercase text-cream/25 hover:text-cream/60 transition-colors duration-200"
+        {/* Polaroid flotante — no fullscreen */}
+        <div
+          className="bg-[#faf7f2] p-4 md:p-5 pb-14 md:pb-20 w-[78vw] max-w-sm md:max-w-md"
+          style={{
+            boxShadow: '0 40px 100px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.5)',
+            transform: 'rotate(0.5deg)',
+          }}
         >
-          cerrar ×
-        </button>
+          <img
+            src={photos[activeIndex].url}
+            alt={photos[activeIndex].caption ?? ''}
+            className="w-full object-contain block"
+            style={{ maxHeight: '55vh' }}
+            draggable={false}
+          />
+          {/* Área de inscripción */}
+          <div className="flex items-center justify-between mt-2 md:mt-3 px-1">
+            <span className="font-body text-[10px] tracking-[0.2em] text-ink/35 uppercase">
+              {photos[activeIndex].caption ?? ''}
+            </span>
+            {photos.length > 1 && (
+              <span className="font-body text-[9px] tracking-[0.3em] text-ink/25">
+                {String(activeIndex + 1).padStart(2, '0')}/{String(photos.length).padStart(2, '0')}
+              </span>
+            )}
+          </div>
+        </div>
 
-        <img
-          src={photos[activeIndex].url}
-          alt={photos[activeIndex].caption ?? ''}
-          className="max-h-[80vh] max-w-full object-contain"
-          draggable={false}
-        />
-
-        <div className="flex items-center gap-6">
+        {/* Navegación y cerrar debajo del polaroid */}
+        <div className="flex items-center gap-8">
           {photos.length > 1 && (
-            <span className="font-body text-[10px] tracking-[0.35em] text-cream/20">
-              {String(activeIndex + 1).padStart(2, '0')} / {String(photos.length).padStart(2, '0')}
-            </span>
+            <button
+              onClick={e => { e.stopPropagation(); onPrev() }}
+              className="font-body text-cream/30 hover:text-cream/70 transition-colors duration-200 text-xl select-none px-3"
+              aria-label="Anterior"
+            >←</button>
           )}
-          {photos[activeIndex].caption && (
-            <span className="font-body text-xs tracking-[0.25em] text-cream/40 uppercase">
-              {photos[activeIndex].caption}
-            </span>
+          <button
+            onClick={onClose}
+            className="font-body text-[10px] tracking-[0.35em] uppercase text-cream/25 hover:text-cream/55 transition-colors duration-200"
+          >
+            cerrar ×
+          </button>
+          {photos.length > 1 && (
+            <button
+              onClick={e => { e.stopPropagation(); onNext() }}
+              className="font-body text-cream/30 hover:text-cream/70 transition-colors duration-200 text-xl select-none px-3"
+              aria-label="Siguiente"
+            >→</button>
           )}
         </div>
       </div>
@@ -89,6 +98,7 @@ function Lightbox({
 
 export default function GalleryClient({ photos }: { photos: Photo[] }) {
   const [expanded, setExpanded] = useState(false)
+  const [revealKey, setRevealKey] = useState(0)
   const [activeIndex, setActiveIndex] = useState<number | null>(null)
   const [closing, setClosing] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -97,15 +107,16 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
 
   useEffect(() => { setMounted(true) }, [])
 
-  const left = photos.filter((_, i) => i % 2 === 0)
-  const right = photos.filter((_, i) => i % 2 === 1)
+  // Cada vez que se abre la solapa, re-dispara las animaciones de caída
+  useEffect(() => {
+    if (!expanded) return
+    const t = setTimeout(() => setRevealKey(k => k + 1), 180)
+    return () => clearTimeout(t)
+  }, [expanded])
 
   const closeWithAnimation = useCallback(() => {
     setClosing(true)
-    setTimeout(() => {
-      setClosing(false)
-      setActiveIndex(null)
-    }, 200)
+    setTimeout(() => { setClosing(false); setActiveIndex(null) }, 200)
   }, [])
 
   const prev = useCallback(() =>
@@ -165,11 +176,11 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
           <div className="overflow-hidden">
             <div
               className="relative py-16 md:py-24"
-              style={{ background: 'linear-gradient(180deg, #171717 0%, #1f1f1f 100%)' }}
+              style={{ background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)' }}
             >
               {/* Watermark */}
               <span
-                className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none overflow-hidden"
+                className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
                 style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
                 aria-hidden="true"
               >03</span>
@@ -184,82 +195,48 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
                 </span>
               </div>
 
-              {/* Desktop: dos columnas asimétricas con offset */}
-              <div className="px-6 md:px-12 lg:px-24 relative z-10">
-                <div className="hidden md:flex gap-3 lg:gap-4 items-start">
-                  <div className="flex flex-col gap-3 lg:gap-4 w-[57%]">
-                    {left.map((photo, i) => {
-                      const globalIndex = i * 2
-                      return (
-                        <button
-                          key={photo.id}
-                          onClick={() => setActiveIndex(globalIndex)}
-                          className="block w-full overflow-hidden group relative cursor-zoom-in"
+              {/* Grid de polaroids */}
+              <div className="px-8 md:px-16 lg:px-28 relative z-10">
+                <div
+                  key={revealKey}
+                  className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16"
+                >
+                  {photos.map((photo, i) => {
+                    const rot = ROTATIONS[i % ROTATIONS.length]
+                    return (
+                      <button
+                        key={photo.id}
+                        onClick={() => setActiveIndex(i)}
+                        className="polaroid-card polaroid-drop cursor-zoom-in text-left"
+                        style={{
+                          '--rot': `${rot}deg`,
+                          animationDelay: `${i * 75}ms`,
+                        } as React.CSSProperties}
+                        aria-label={photo.caption ?? `Foto ${i + 1}`}
+                      >
+                        {/* Marco polaroid */}
+                        <div
+                          className="bg-[#faf7f2] p-3 md:p-4 pb-10 md:pb-14"
+                          style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3)' }}
                         >
                           <img
                             src={photo.url}
                             alt={photo.caption ?? ''}
-                            className="w-full object-cover transition-all duration-700 group-hover:scale-[1.03] group-hover:brightness-75"
+                            className="w-full object-cover block"
                             loading="lazy"
                           />
-                          <span className="absolute top-3 left-4 font-body text-[9px] tracking-[0.4em] text-cream/0 group-hover:text-cream/40 transition-colors duration-300 uppercase">
-                            {String(globalIndex + 1).padStart(2, '0')}
-                          </span>
-                          {photo.caption && (
-                            <span className="absolute bottom-3 left-4 right-4 font-body text-[10px] tracking-[0.25em] text-cream/0 group-hover:text-cream/60 transition-colors duration-300 uppercase text-left line-clamp-1">
-                              {photo.caption}
-                            </span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-
-                  <div className="flex flex-col gap-3 lg:gap-4 w-[43%] mt-24">
-                    {right.map((photo, i) => {
-                      const globalIndex = i * 2 + 1
-                      return (
-                        <button
-                          key={photo.id}
-                          onClick={() => setActiveIndex(globalIndex)}
-                          className="block w-full overflow-hidden group relative cursor-zoom-in"
-                        >
-                          <img
-                            src={photo.url}
-                            alt={photo.caption ?? ''}
-                            className="w-full object-cover transition-all duration-700 group-hover:scale-[1.03] group-hover:brightness-75"
-                            loading="lazy"
-                          />
-                          <span className="absolute top-3 left-4 font-body text-[9px] tracking-[0.4em] text-cream/0 group-hover:text-cream/40 transition-colors duration-300 uppercase">
-                            {String(globalIndex + 1).padStart(2, '0')}
-                          </span>
-                          {photo.caption && (
-                            <span className="absolute bottom-3 left-4 right-4 font-body text-[10px] tracking-[0.25em] text-cream/0 group-hover:text-cream/60 transition-colors duration-300 uppercase text-left line-clamp-1">
-                              {photo.caption}
-                            </span>
-                          )}
-                        </button>
-                      )
-                    })}
-                  </div>
-                </div>
-
-                {/* Mobile */}
-                <div className="md:hidden columns-2 gap-2">
-                  {photos.map((photo, i) => (
-                    <button
-                      key={photo.id}
-                      onClick={() => setActiveIndex(i)}
-                      className="break-inside-avoid mb-2 block w-full overflow-hidden group"
-                    >
-                      <img
-                        src={photo.url}
-                        alt={photo.caption ?? ''}
-                        className="w-full object-cover transition-all duration-500 group-hover:brightness-75"
-                        loading="lazy"
-                      />
-                    </button>
-                  ))}
+                          {/* Área de inscripción (siempre presente, como polaroid real) */}
+                          <div className="flex items-center justify-center h-4 md:h-6 mt-1">
+                            {photo.caption && (
+                              <span className="font-body text-[9px] md:text-[10px] tracking-[0.18em] text-ink/35 uppercase line-clamp-1">
+                                {photo.caption}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      </button>
+                    )
+                  })}
                 </div>
               </div>
             </div>
@@ -267,7 +244,7 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
         </div>
       </div>
 
-      {/* Lightbox via portal → siempre en document.body, sin restricciones de overflow/z-index */}
+      {/* Lightbox via portal */}
       {mounted && activeIndex !== null && createPortal(
         <Lightbox
           photos={photos}

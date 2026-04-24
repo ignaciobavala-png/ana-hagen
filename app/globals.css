@@ -180,3 +180,29 @@ body {
 .gallery-overlay-out { animation: gallery-overlay-out 0.22s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards; }
 .gallery-photo-in    { animation: gallery-photo-in    0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
 .gallery-photo-out   { animation: gallery-photo-out   0.2s  cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards; }
+
+/* Polaroid cards */
+.polaroid-card {
+  transform: rotate(var(--rot, 0deg));
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+  position: relative;
+  z-index: 1;
+  will-change: transform;
+}
+.polaroid-card:hover {
+  transform: rotate(0deg) scale(1.06);
+  z-index: 10;
+}
+@keyframes polaroid-drop {
+  from {
+    opacity: 0;
+    transform: rotate(var(--rot, 0deg)) translateY(30px) scale(0.88);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(var(--rot, 0deg));
+  }
+}
+.polaroid-drop {
+  animation: polaroid-drop 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
