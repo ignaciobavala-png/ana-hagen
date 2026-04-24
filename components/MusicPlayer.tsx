@@ -101,7 +101,7 @@ export default function MusicPlayer({ tracks }: Props) {
   const [shuffled, setShuffled] = useState(false)
   const [loading, setLoading] = useState(false)
   const [hoverTime, setHoverTime] = useState<number | null>(null)
-  const [expanded, setExpanded] = useState(true)
+  const [expanded, setExpanded] = useState(false)
   const isFirstRender = useRef(true)
   const carouselRef = useRef<HTMLDivElement>(null)
   const { state, load, toggle, seekTo } = useSoundCloudWidget('sc-widget')

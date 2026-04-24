@@ -78,7 +78,7 @@ export default async function Hero() {
           style={{ textShadow: '0 1px 8px rgba(0,0,0,0.6)', animationDelay: '0.85s' }}
         >
           <span className="sm:hidden">DJ · Buenos Aires</span>
-          <span className="hidden sm:inline">DJ · Buenos Aires · Minimal Techno · House · Techno</span>
+          <span className="hidden sm:inline">DJ · Artist · Buenos Aires</span>
         </p>
 
         {/* CTA */}

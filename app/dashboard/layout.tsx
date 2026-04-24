@@ -29,6 +29,12 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             Videos
           </Link>
           <Link
+            href="/dashboard/photos"
+            className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
+          >
+            Fotos
+          </Link>
+          <Link
             href="/dashboard/playlist"
             className="font-body text-xs tracking-[0.2em] uppercase text-cream/60 hover:text-cream transition-colors"
           >

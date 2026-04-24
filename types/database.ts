@@ -54,6 +54,14 @@ export interface PlaylistTrack {
   created_at: string
 }
 
+export interface Photo {
+  id: string
+  url: string
+  caption: string | null
+  order_index: number
+  created_at: string
+}
+
 export interface LiveConfig {
   id: number
   is_live: boolean

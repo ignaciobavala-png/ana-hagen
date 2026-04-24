@@ -1,7 +1,7 @@
 const ITEMS = [
   'ANA HAGEN', '·', 'DJ', '·', 'BUENOS AIRES', '·',
-  'MINIMAL TECHNO', '·', 'HOUSE', '·', 'TECHNO', '·',
-  'ANA HAGEN', '·', 'UNDERGROUND', '·', 'ELECTRONIC', '·',
+  'ARTISTA', '·', 'MÚSICA', '·', 'FOTOGRAFÍA', '·',
+  'ANA HAGEN', '·', 'SETS', '·', 'LIVE', '·',
 ]
 
 export default function MarqueeStrip() {

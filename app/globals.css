@@ -158,3 +158,25 @@ body {
   [data-reveal] { transform: none; transition: none; }
   .hero-enter   { opacity: 1; animation: none; }
 }
+
+/* Gallery lightbox */
+@keyframes gallery-overlay-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes gallery-overlay-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes gallery-photo-in {
+  from { opacity: 0; transform: scale(0.92) translateY(12px); }
+  to   { opacity: 1; transform: scale(1) translateY(0); }
+}
+@keyframes gallery-photo-out {
+  from { opacity: 1; transform: scale(1) translateY(0); }
+  to   { opacity: 0; transform: scale(0.94) translateY(8px); }
+}
+.gallery-overlay-in  { animation: gallery-overlay-in  0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards; }
+.gallery-overlay-out { animation: gallery-overlay-out 0.22s cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards; }
+.gallery-photo-in    { animation: gallery-photo-in    0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+.gallery-photo-out   { animation: gallery-photo-out   0.2s  cubic-bezier(0.55, 0.06, 0.68, 0.19) forwards; }

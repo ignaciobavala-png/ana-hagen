@@ -18,7 +18,7 @@ function formatDate(raw: string): { day: string; month: string; year: string } {
 
 export default function DatesSection({ events }: { events: Event[] }) {
   const hasEvents = events.length > 0
-  const [expanded, setExpanded] = useState(hasEvents)
+  const [expanded, setExpanded] = useState(false)
 
   return (
     <div id="dates" className="border-t border-cream/[0.14]">
