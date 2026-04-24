@@ -72,15 +72,6 @@ export default function DatesSection({ events }: { events: Event[] }) {
             >01</span>
 
             <div className="max-w-5xl mx-auto relative z-10">
-              <div className="flex items-end justify-between mb-12 md:mb-16 border-b border-cream/[0.14] pb-6">
-                <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-                  <ScrambleText text="FECHAS" />
-                </h2>
-                <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/55 mb-2">
-                  Próximos shows
-                </span>
-              </div>
-
               {!hasEvents ? (
                 <div className="py-12 text-center">
                   <p className="font-display text-3xl md:text-4xl text-cream/50 tracking-wide">

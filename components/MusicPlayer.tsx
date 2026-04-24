@@ -220,14 +220,7 @@ export default function MusicPlayer({ tracks }: Props) {
           {!currentTrack ? (
             <div className="py-20 md:py-32 overflow-hidden relative" style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
               <span className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none" style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }} aria-hidden="true">03</span>
-              <div className="px-6 md:px-12 lg:px-24 relative z-10">
-                <div className="flex items-end justify-between mb-12 border-b border-cream/[0.14] pb-6">
-                  <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-                    <ScrambleText text="MUSIC" />
-                  </h2>
-                  <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">Selección de Ana</span>
-                </div>
-              </div>
+              <div className="px-6 md:px-12 lg:px-24 relative z-10"></div>
               <div className="flex gap-4 md:gap-5 overflow-hidden px-6 md:px-12 lg:px-24">
                 {[1, 2, 3, 4, 5].map(i => (
                   <div key={i} className="shrink-0 w-44 md:w-52" style={{ opacity: 1 - i * 0.15 }}>
@@ -275,14 +268,6 @@ export default function MusicPlayer({ tracks }: Props) {
 
             {/* Watermark */}
             <span className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none" style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }} aria-hidden="true">03</span>
-
-            {/* Header */}
-            <div className="flex items-end justify-between mb-10 md:mb-12 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
-              <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-                <ScrambleText text="MUSIC" />
-              </h2>
-              <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">Selección de Ana</span>
-            </div>
 
             {/* Carousel */}
             <div

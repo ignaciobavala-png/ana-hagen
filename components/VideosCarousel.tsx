@@ -88,16 +88,6 @@ export default function VideosCarousel({ videos }: { videos: Video[] }) {
               aria-hidden="true"
             >02</span>
 
-            {/* Header */}
-            <div className="flex items-end justify-between mb-12 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
-              <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-                <ScrambleText text="SETS" />
-              </h2>
-              <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
-                Videos
-              </span>
-            </div>
-
             {/* Carousel */}
             <div
               className="flex gap-5 md:gap-6 overflow-x-auto pb-2 px-6 md:px-12 lg:px-24 no-scrollbar"

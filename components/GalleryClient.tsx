@@ -175,7 +175,7 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
         >
           <div className="overflow-hidden">
             <div
-              className="relative py-16 md:py-24"
+              className="relative py-10 md:py-16"
               style={{ background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)' }}
             >
               {/* Watermark */}
@@ -185,21 +185,11 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
                 aria-hidden="true"
               >03</span>
 
-              {/* Header */}
-              <div className="flex items-end justify-between mb-16 border-b border-cream/[0.14] pb-6 px-6 md:px-12 lg:px-24 relative z-10">
-                <h2 className="font-display text-[clamp(3rem,8vw,7rem)] leading-none tracking-tight text-cream">
-                  <ScrambleText text="FOTOS" />
-                </h2>
-                <span className="font-body text-xs tracking-[0.3em] uppercase text-cream/50 mb-2">
-                  Fotografía
-                </span>
-              </div>
-
               {/* Grid de polaroids */}
-              <div className="px-8 md:px-16 lg:px-28 relative z-10">
+              <div className="px-6 md:px-12 lg:px-20 relative z-10">
                 <div
                   key={revealKey}
-                  className="grid grid-cols-2 md:grid-cols-3 gap-8 md:gap-12 lg:gap-16"
+                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12 lg:gap-16"
                 >
                   {photos.map((photo, i) => {
                     const rot = ROTATIONS[i % ROTATIONS.length]
