@@ -42,7 +42,7 @@ function Lightbox({
       >
         {/* Polaroid flotante — no fullscreen */}
         <div
-          className="bg-[#faf7f2] p-4 md:p-5 pb-14 md:pb-20 w-[78vw] max-w-sm md:max-w-md"
+          className="overflow-hidden w-[78vw] max-w-sm md:max-w-md"
           style={{
             boxShadow: '0 40px 100px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.5)',
             transform: 'rotate(0.5deg)',
@@ -55,17 +55,6 @@ function Lightbox({
             style={{ maxHeight: '55vh' }}
             draggable={false}
           />
-          {/* Área de inscripción */}
-          <div className="flex items-center justify-between mt-2 md:mt-3 px-1">
-            <span className="font-body text-[10px] tracking-[0.2em] text-ink/35 uppercase">
-              {photos[activeIndex].caption ?? ''}
-            </span>
-            {photos.length > 1 && (
-              <span className="font-body text-[9px] tracking-[0.3em] text-ink/25">
-                {String(activeIndex + 1).padStart(2, '0')}/{String(photos.length).padStart(2, '0')}
-              </span>
-            )}
-          </div>
         </div>
 
         {/* Navegación y cerrar debajo del polaroid */}
@@ -202,27 +191,17 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
                           '--rot': `${rot}deg`,
                           animationDelay: `${i * 75}ms`,
                         } as React.CSSProperties}
+                        onAnimationEnd={e => e.currentTarget.classList.remove('polaroid-drop')}
                         aria-label={photo.caption ?? `Foto ${i + 1}`}
                       >
                         {/* Marco polaroid */}
-                        <div
-                          className="bg-[#faf7f2] p-3 md:p-4 pb-10 md:pb-14"
-                          style={{ boxShadow: '0 6px 24px rgba(0,0,0,0.45), 0 2px 6px rgba(0,0,0,0.3)' }}
-                        >
+                        <div className="overflow-hidden">
                           <img
                             src={photo.url}
                             alt={photo.caption ?? ''}
                             className="w-full object-cover block"
                             loading="lazy"
                           />
-                          {/* Área de inscripción (siempre presente, como polaroid real) */}
-                          <div className="flex items-center justify-center h-4 md:h-6 mt-1">
-                            {photo.caption && (
-                              <span className="font-body text-[9px] md:text-[10px] tracking-[0.18em] text-ink/35 uppercase line-clamp-1">
-                                {photo.caption}
-                              </span>
-                            )}
-                          </div>
                         </div>
                       </button>
                     )

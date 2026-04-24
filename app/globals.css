@@ -184,13 +184,15 @@ body {
 /* Polaroid cards */
 .polaroid-card {
   transform: rotate(var(--rot, 0deg));
-  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), box-shadow 0.4s ease;
+  transition: transform 0.5s cubic-bezier(0.25, 0.46, 0.45, 0.94), filter 0.4s ease;
   position: relative;
   z-index: 1;
   will-change: transform;
+  filter: drop-shadow(0 6px 20px rgba(0,0,0,0.5)) drop-shadow(0 2px 6px rgba(0,0,0,0.3));
 }
 .polaroid-card:hover {
-  transform: rotate(0deg) scale(1.06);
+  transform: rotate(0deg) scale(1.06) translateY(-10px);
+  filter: drop-shadow(0 24px 55px rgba(0,0,0,0.8)) brightness(1.07);
   z-index: 10;
 }
 @keyframes polaroid-drop {
