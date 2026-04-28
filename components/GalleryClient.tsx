@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { Photo } from '@/types/database'
-import ScrambleText from './ScrambleText'
+import { AlbumWithPhotos, Photo } from '@/types/database'
 
 const IconChevron = () => (
   <svg width="12" height="12" viewBox="0 0 12 12" fill="none">
@@ -11,16 +10,8 @@ const IconChevron = () => (
   </svg>
 )
 
-// Rotaciones determinísticas — varían lo suficiente para sentirse naturales
-const ROTATIONS = [-2.8, 3.1, -1.4, 2.5, -3.6, 1.7, -2.2, 3.9, -1.1, 2.3, -3.2, 1.9]
-
 function Lightbox({
-  photos,
-  activeIndex,
-  closing,
-  onClose,
-  onPrev,
-  onNext,
+  photos, activeIndex, closing, onClose, onPrev, onNext,
 }: {
   photos: Photo[]
   activeIndex: number
@@ -32,50 +23,44 @@ function Lightbox({
   return (
     <div
       className={`fixed inset-0 flex items-center justify-center ${closing ? 'gallery-overlay-out' : 'gallery-overlay-in'}`}
-      style={{ backgroundColor: 'rgba(8, 8, 8, 0.82)', zIndex: 9999, backdropFilter: 'blur(3px)' }}
+      style={{ backgroundColor: 'rgba(8,8,8,0.92)', zIndex: 9999, backdropFilter: 'blur(4px)' }}
       onClick={onClose}
     >
       <div
         key={activeIndex}
-        className={`flex flex-col items-center gap-5 ${closing ? 'gallery-photo-out' : 'gallery-photo-in'}`}
+        className={`flex flex-col items-center gap-5 px-4 ${closing ? 'gallery-photo-out' : 'gallery-photo-in'}`}
         onClick={e => e.stopPropagation()}
       >
-        {/* Polaroid flotante — no fullscreen */}
-        <div
-          className="overflow-hidden w-[78vw] max-w-sm md:max-w-md"
-          style={{
-            boxShadow: '0 40px 100px rgba(0,0,0,0.85), 0 8px 24px rgba(0,0,0,0.5)',
-            transform: 'rotate(0.5deg)',
-          }}
-        >
-          <img
-            src={photos[activeIndex].url}
-            alt={photos[activeIndex].caption ?? ''}
-            className="w-full object-contain block"
-            style={{ maxHeight: '55vh' }}
-            draggable={false}
-          />
-        </div>
-
-        {/* Navegación y cerrar debajo del polaroid */}
+        <img
+          src={photos[activeIndex].url}
+          alt={photos[activeIndex].caption ?? ''}
+          className="block max-h-[80vh] max-w-[90vw] w-auto object-contain"
+          style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.8)' }}
+          draggable={false}
+        />
+        {photos[activeIndex].caption && (
+          <p className="font-body text-[10px] tracking-[0.3em] text-cream/40 uppercase">
+            {photos[activeIndex].caption}
+          </p>
+        )}
         <div className="flex items-center gap-8">
           {photos.length > 1 && (
             <button
               onClick={e => { e.stopPropagation(); onPrev() }}
-              className="font-body text-cream/30 hover:text-cream/70 transition-colors duration-200 text-xl select-none px-3"
+              className="font-body text-cream/30 hover:text-cream/70 transition-colors text-xl px-3"
               aria-label="Anterior"
             >←</button>
           )}
           <button
             onClick={onClose}
-            className="font-body text-[10px] tracking-[0.35em] uppercase text-cream/25 hover:text-cream/55 transition-colors duration-200"
+            className="font-body text-[10px] tracking-[0.35em] uppercase text-cream/25 hover:text-cream/55 transition-colors"
           >
             cerrar ×
           </button>
           {photos.length > 1 && (
             <button
               onClick={e => { e.stopPropagation(); onNext() }}
-              className="font-body text-cream/30 hover:text-cream/70 transition-colors duration-200 text-xl select-none px-3"
+              className="font-body text-cream/30 hover:text-cream/70 transition-colors text-xl px-3"
               aria-label="Siguiente"
             >→</button>
           )}
@@ -85,52 +70,149 @@ function Lightbox({
   )
 }
 
-export default function GalleryClient({ photos }: { photos: Photo[] }) {
+function AlbumCard({
+  album, isPreviewing, onClick,
+}: {
+  album: AlbumWithPhotos
+  isPreviewing: boolean
+  onClick: () => void
+}) {
+  const cover = album.photos[0]
+  const previewThumbs = album.photos.slice(0, 4)
+
+  return (
+    <button
+      onClick={onClick}
+      className="flex-none relative overflow-hidden group"
+      style={{
+        width: 'clamp(220px, 29vw, 380px)',
+        height: 'clamp(260px, 54vh, 500px)',
+      }}
+      aria-label={album.title}
+    >
+      {/* Cover */}
+      {cover ? (
+        <img
+          src={cover.url}
+          alt={album.title}
+          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 will-change-transform ${
+            isPreviewing
+              ? 'scale-[1.04] brightness-[0.5]'
+              : 'group-hover:scale-[1.02] group-hover:brightness-[0.85]'
+          }`}
+        />
+      ) : (
+        <div className="absolute inset-0 bg-ink/30" />
+      )}
+
+      {/* Gradient base */}
+      <div
+        className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent transition-opacity duration-400 ${
+          isPreviewing ? 'opacity-100' : 'opacity-60'
+        }`}
+      />
+
+      {/* Preview thumbnails — slide up on first click */}
+      <div
+        className={`absolute left-0 right-0 px-3 transition-all duration-400 ease-out ${
+          isPreviewing
+            ? 'bottom-[70px] opacity-100'
+            : 'bottom-0 translate-y-3 opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="flex gap-1">
+          {previewThumbs.map(photo => (
+            <div key={photo.id} className="flex-1 aspect-square overflow-hidden">
+              <img src={photo.url} alt="" className="w-full h-full object-cover" />
+            </div>
+          ))}
+        </div>
+        <p className="font-body text-[9px] tracking-[0.35em] text-cream/50 text-center mt-2 uppercase">
+          click para entrar
+        </p>
+      </div>
+
+      {/* Album title + count */}
+      <div className="absolute bottom-0 left-0 right-0 p-4">
+        <p className="font-display text-xl md:text-2xl tracking-[0.2em] text-cream leading-tight">
+          {album.title.toUpperCase()}
+        </p>
+        <p className="font-body text-[9px] tracking-[0.3em] text-cream/40 mt-1">
+          {album.photos.length} {album.photos.length === 1 ? 'FOTO' : 'FOTOS'}
+        </p>
+      </div>
+    </button>
+  )
+}
+
+export default function GalleryClient({ albums }: { albums: AlbumWithPhotos[] }) {
   const [expanded, setExpanded] = useState(false)
-  const [revealKey, setRevealKey] = useState(0)
-  const [activeIndex, setActiveIndex] = useState<number | null>(null)
-  const [closing, setClosing] = useState(false)
+  const [view, setView] = useState<'albums' | 'album'>('albums')
+  const [previewId, setPreviewId] = useState<string | null>(null)
+  const [activeAlbumId, setActiveAlbumId] = useState<string | null>(null)
+  const [lightbox, setLightbox] = useState<{ photos: Photo[]; index: number } | null>(null)
+  const [lightboxClosing, setLightboxClosing] = useState(false)
   const [mounted, setMounted] = useState(false)
-  const activeRef = useRef(activeIndex)
-  activeRef.current = activeIndex
+  const lightboxRef = useRef(lightbox)
+  lightboxRef.current = lightbox
 
-  useEffect(() => { setMounted(true) }, [])
+  useEffect(() => setMounted(true), [])
 
-  // Cada vez que se abre la solapa, re-dispara las animaciones de caída
-  useEffect(() => {
-    if (!expanded) return
-    const t = setTimeout(() => setRevealKey(k => k + 1), 180)
-    return () => clearTimeout(t)
-  }, [expanded])
+  const handleToggle = () => {
+    if (expanded) {
+      setView('albums')
+      setPreviewId(null)
+      setActiveAlbumId(null)
+    }
+    setExpanded(v => !v)
+  }
 
-  const closeWithAnimation = useCallback(() => {
-    setClosing(true)
-    setTimeout(() => { setClosing(false); setActiveIndex(null) }, 200)
+  const handleAlbumClick = (albumId: string) => {
+    if (previewId === albumId) {
+      setActiveAlbumId(albumId)
+      setView('album')
+      setPreviewId(null)
+    } else {
+      setPreviewId(albumId)
+    }
+  }
+
+  const handleBack = () => {
+    setView('albums')
+    setActiveAlbumId(null)
+    setPreviewId(null)
+  }
+
+  const closeLightbox = useCallback(() => {
+    setLightboxClosing(true)
+    setTimeout(() => { setLightboxClosing(false); setLightbox(null) }, 200)
   }, [])
 
-  const prev = useCallback(() =>
-    setActiveIndex(i => (i !== null ? (i - 1 + photos.length) % photos.length : null)),
-    [photos.length])
+  const prevPhoto = useCallback(() =>
+    setLightbox(lb => lb ? { ...lb, index: (lb.index - 1 + lb.photos.length) % lb.photos.length } : null),
+  [])
 
-  const next = useCallback(() =>
-    setActiveIndex(i => (i !== null ? (i + 1) % photos.length : null)),
-    [photos.length])
+  const nextPhoto = useCallback(() =>
+    setLightbox(lb => lb ? { ...lb, index: (lb.index + 1) % lb.photos.length } : null),
+  [])
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      if (activeRef.current === null) return
-      if (e.key === 'Escape') closeWithAnimation()
-      if (e.key === 'ArrowLeft') prev()
-      if (e.key === 'ArrowRight') next()
+      if (!lightboxRef.current) return
+      if (e.key === 'Escape') closeLightbox()
+      if (e.key === 'ArrowLeft') prevPhoto()
+      if (e.key === 'ArrowRight') nextPhoto()
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [closeWithAnimation, prev, next])
+  }, [closeLightbox, prevPhoto, nextPhoto])
 
   useEffect(() => {
-    document.body.style.overflow = activeIndex !== null ? 'hidden' : ''
+    document.body.style.overflow = lightbox ? 'hidden' : ''
     return () => { document.body.style.overflow = '' }
-  }, [activeIndex])
+  }, [lightbox])
+
+  const activeAlbum = albums.find(a => a.id === activeAlbumId)
 
   return (
     <>
@@ -138,7 +220,7 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
 
         {/* Tab header */}
         <button
-          onClick={() => setExpanded(v => !v)}
+          onClick={handleToggle}
           className="w-full flex items-center gap-4 px-6 md:px-12 lg:px-24 py-4 hover:bg-white/[0.02] transition-colors duration-200 group"
           style={{ background: '#1f1f1f' }}
           aria-expanded={expanded}
@@ -147,7 +229,7 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
             FOTOS
           </span>
           <span className="font-body text-[10px] tracking-[0.3em] uppercase text-cream/35 group-hover:text-cream/55 transition-colors duration-200">
-            · {photos.length} {photos.length === 1 ? 'foto' : 'fotos'}
+            · {albums.length} {albums.length === 1 ? 'álbum' : 'álbumes'}
           </span>
           <span
             className={`ml-auto text-cream/25 group-hover:text-cream/45 transition-all duration-300 ${expanded ? 'rotate-180' : ''}`}
@@ -157,71 +239,81 @@ export default function GalleryClient({ photos }: { photos: Photo[] }) {
           </span>
         </button>
 
-        {/* Panel expandible */}
+        {/* Expandable panel */}
         <div
           className="grid transition-[grid-template-rows] duration-500 ease-in-out"
           style={{ gridTemplateRows: expanded ? '1fr' : '0fr' }}
         >
           <div className="overflow-hidden">
-            <div
-              className="relative py-10 md:py-16"
-              style={{ background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)' }}
-            >
-              {/* Watermark */}
-              <span
-                className="absolute -right-4 top-0 font-display leading-none text-cream/[0.03] select-none pointer-events-none"
-                style={{ fontSize: 'clamp(10rem, 30vw, 22rem)' }}
-                aria-hidden="true"
-              >03</span>
+            <div style={{ background: 'linear-gradient(180deg, #141414 0%, #1a1a1a 100%)' }}>
 
-              {/* Grid de polaroids */}
-              <div className="px-6 md:px-12 lg:px-20 relative z-10">
-                <div
-                  key={revealKey}
-                  className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8 sm:gap-10 md:gap-12 lg:gap-16"
-                >
-                  {photos.map((photo, i) => {
-                    const rot = ROTATIONS[i % ROTATIONS.length]
-                    return (
+              {view === 'albums' ? (
+                /* ── Albums grid ── */
+                <div className="py-8 md:py-12">
+                  <div className="flex gap-3 md:gap-4 overflow-x-auto px-6 md:px-12 lg:px-24 pb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {albums.map(album => (
+                      <AlbumCard
+                        key={album.id}
+                        album={album}
+                        isPreviewing={previewId === album.id}
+                        onClick={() => handleAlbumClick(album.id)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              ) : activeAlbum ? (
+                /* ── Photo filmstrip ── */
+                <div>
+                  {/* Header */}
+                  <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 pt-6 pb-4">
+                    <button
+                      onClick={handleBack}
+                      className="font-body text-[10px] tracking-[0.3em] uppercase text-cream/40 hover:text-cream/80 transition-colors duration-200"
+                    >
+                      ← ÁLBUMES
+                    </button>
+                    <span className="text-cream/20">·</span>
+                    <span className="font-display text-base md:text-lg tracking-[0.25em] text-cream/60">
+                      {activeAlbum.title.toUpperCase()}
+                    </span>
+                  </div>
+
+                  {/* Strip */}
+                  <div className="flex gap-2 overflow-x-auto px-6 md:px-12 lg:px-24 pb-8 md:pb-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                    {activeAlbum.photos.map((photo, i) => (
                       <button
                         key={photo.id}
-                        onClick={() => setActiveIndex(i)}
-                        className="polaroid-card polaroid-drop cursor-zoom-in text-left"
-                        style={{
-                          '--rot': `${rot}deg`,
-                          animationDelay: `${i * 75}ms`,
-                        } as React.CSSProperties}
-                        onAnimationEnd={e => e.currentTarget.classList.remove('polaroid-drop')}
+                        onClick={() => setLightbox({ photos: activeAlbum.photos, index: i })}
+                        className="flex-none cursor-zoom-in overflow-hidden group"
+                        style={{ height: 'clamp(240px, 52vh, 460px)' }}
                         aria-label={photo.caption ?? `Foto ${i + 1}`}
                       >
-                        {/* Marco polaroid */}
-                        <div className="overflow-hidden">
-                          <img
-                            src={photo.url}
-                            alt={photo.caption ?? ''}
-                            className="w-full object-cover block"
-                            loading="lazy"
-                          />
-                        </div>
+                        <img
+                          src={photo.url}
+                          alt={photo.caption ?? ''}
+                          className="h-full w-auto block object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+                          loading="lazy"
+                        />
                       </button>
-                    )
-                  })}
+                    ))}
+                  </div>
                 </div>
-              </div>
+              ) : null}
+
             </div>
           </div>
         </div>
+
       </div>
 
-      {/* Lightbox via portal */}
-      {mounted && activeIndex !== null && createPortal(
+      {mounted && lightbox && createPortal(
         <Lightbox
-          photos={photos}
-          activeIndex={activeIndex}
-          closing={closing}
-          onClose={closeWithAnimation}
-          onPrev={prev}
-          onNext={next}
+          photos={lightbox.photos}
+          activeIndex={lightbox.index}
+          closing={lightboxClosing}
+          onClose={closeLightbox}
+          onPrev={prevPhoto}
+          onNext={nextPhoto}
         />,
         document.body
       )}
