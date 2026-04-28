@@ -13,7 +13,7 @@ export async function getPhotos() {
   return data ?? []
 }
 
-export async function addPhoto(url: string, caption?: string) {
+export async function addPhoto(url: string, caption?: string, albumId?: string | null) {
   const supabase = createServiceClient()
 
   const { data: last } = await supabase
@@ -27,6 +27,7 @@ export async function addPhoto(url: string, caption?: string) {
     url,
     caption: caption?.trim() || null,
     order_index: (last?.order_index ?? -1) + 1,
+    album_id: albumId || null,
   })
 
   if (error) return { error: 'Error al guardar la foto' }
@@ -42,6 +43,18 @@ export async function updatePhotoCaption(id: string, caption: string) {
     .update({ caption: caption.trim() || null })
     .eq('id', id)
   if (error) return { error: 'Error al actualizar caption' }
+  revalidatePath('/')
+  revalidatePath('/dashboard/photos')
+  return { success: true }
+}
+
+export async function assignPhotoToAlbum(photoId: string, albumId: string | null) {
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from('photos')
+    .update({ album_id: albumId || null })
+    .eq('id', photoId)
+  if (error) return { error: 'Error al asignar foto al álbum' }
   revalidatePath('/')
   revalidatePath('/dashboard/photos')
   return { success: true }

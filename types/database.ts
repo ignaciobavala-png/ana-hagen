@@ -54,11 +54,23 @@ export interface PlaylistTrack {
   created_at: string
 }
 
+export interface Album {
+  id: string
+  title: string
+  order_index: number
+  created_at: string
+}
+
+export interface AlbumWithPhotos extends Album {
+  photos: Photo[]
+}
+
 export interface Photo {
   id: string
   url: string
   caption: string | null
   order_index: number
+  album_id: string | null
   created_at: string
 }
 
