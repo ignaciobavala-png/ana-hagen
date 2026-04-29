@@ -35,7 +35,7 @@ function Lightbox({
           src={photos[activeIndex].url}
           alt={photos[activeIndex].caption ?? ''}
           className="block max-h-[80vh] max-w-[90vw] w-auto object-contain"
-          style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.8)' }}
+          style={{ boxShadow: '0 32px 80px rgba(0,0,0,0.8)', imageOrientation: 'from-image' }}
           draggable={false}
         />
         {photos[activeIndex].caption && (
@@ -70,117 +70,160 @@ function Lightbox({
   )
 }
 
-function AlbumCard({
-  album, isPreviewing, onClick,
-}: {
-  album: AlbumWithPhotos
-  isPreviewing: boolean
-  onClick: () => void
-}) {
-  const cover = album.photos[0]
-  const previewThumbs = album.photos.slice(0, 4)
+function AlbumCard({ album, onClick }: { album: AlbumWithPhotos; onClick: () => void }) {
+  const [photoIndex, setPhotoIndex] = useState(0)
+  const photo = album.photos[photoIndex]
+  const multi = album.photos.length > 1
+
+  const prev = () => setPhotoIndex(i => (i - 1 + album.photos.length) % album.photos.length)
+  const next = () => setPhotoIndex(i => (i + 1) % album.photos.length)
 
   return (
-    <button
+    <div
+      role="button"
+      tabIndex={0}
       onClick={onClick}
-      className="flex-none relative overflow-hidden group"
-      style={{
-        width: 'clamp(220px, 29vw, 380px)',
-        height: 'clamp(260px, 54vh, 500px)',
+      onKeyDown={e => {
+        if (e.key === 'Enter') onClick()
+        if (e.key === 'ArrowLeft') { e.preventDefault(); prev() }
+        if (e.key === 'ArrowRight') { e.preventDefault(); next() }
       }}
-      aria-label={album.title}
+      className="flex-none relative overflow-hidden cursor-pointer group"
+      style={{ width: 'clamp(220px, 29vw, 380px)', height: 'clamp(260px, 54vh, 500px)' }}
+      aria-label={`Abrir álbum ${album.title}`}
     >
-      {/* Cover */}
-      {cover ? (
+      {/* Foto actual */}
+      {photo ? (
         <img
-          src={cover.url}
+          key={photoIndex}
+          src={photo.url}
           alt={album.title}
-          className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 will-change-transform ${
-            isPreviewing
-              ? 'scale-[1.04] brightness-[0.5]'
-              : 'group-hover:scale-[1.02] group-hover:brightness-[0.85]'
-          }`}
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-[1.02]"
+          style={{ imageOrientation: 'from-image' }}
         />
       ) : (
         <div className="absolute inset-0 bg-ink/30" />
       )}
 
-      {/* Gradient base */}
-      <div
-        className={`absolute inset-0 bg-gradient-to-t from-black/80 via-black/10 to-transparent transition-opacity duration-400 ${
-          isPreviewing ? 'opacity-100' : 'opacity-60'
-        }`}
-      />
+      {/* Gradiente */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/85 via-black/10 to-transparent" />
 
-      {/* Preview thumbnails — slide up on first click */}
-      <div
-        className={`absolute left-0 right-0 px-3 transition-all duration-400 ease-out ${
-          isPreviewing
-            ? 'bottom-[70px] opacity-100'
-            : 'bottom-0 translate-y-3 opacity-0 pointer-events-none'
-        }`}
-      >
-        <div className="flex gap-1">
-          {previewThumbs.map(photo => (
-            <div key={photo.id} className="flex-1 aspect-square overflow-hidden">
-              <img src={photo.url} alt="" className="w-full h-full object-cover" />
-            </div>
-          ))}
-        </div>
-        <p className="font-body text-[9px] tracking-[0.35em] text-cream/50 text-center mt-2 uppercase">
-          click para entrar
-        </p>
-      </div>
+      {/* Flecha izquierda */}
+      {multi && (
+        <button
+          onClick={e => { e.stopPropagation(); prev() }}
+          className="absolute left-0 top-0 bottom-0 z-20 w-12 flex items-center justify-center text-cream/40 hover:text-cream/95 transition-colors duration-200 bg-gradient-to-r from-black/50 to-transparent"
+          aria-label="Foto anterior"
+        >
+          <span className="text-2xl leading-none select-none">‹</span>
+        </button>
+      )}
 
-      {/* Album title + count */}
-      <div className="absolute bottom-0 left-0 right-0 p-4">
+      {/* Flecha derecha */}
+      {multi && (
+        <button
+          onClick={e => { e.stopPropagation(); next() }}
+          className="absolute right-0 top-0 bottom-0 z-20 w-12 flex items-center justify-center text-cream/40 hover:text-cream/95 transition-colors duration-200 bg-gradient-to-l from-black/50 to-transparent"
+          aria-label="Foto siguiente"
+        >
+          <span className="text-2xl leading-none select-none">›</span>
+        </button>
+      )}
+
+      {/* Info inferior */}
+      <div className="absolute bottom-0 left-0 right-0 p-4 z-10">
+        {/* Barras de progreso (≤10 fotos) o contador */}
+        {multi && album.photos.length <= 10 && (
+          <div className="flex gap-1 mb-3">
+            {album.photos.map((_, i) => (
+              <div
+                key={i}
+                className={`h-[2px] flex-1 rounded-full transition-colors duration-300 ${
+                  i === photoIndex ? 'bg-cream/80' : 'bg-cream/20'
+                }`}
+              />
+            ))}
+          </div>
+        )}
+        {multi && album.photos.length > 10 && (
+          <p className="font-body text-[9px] tracking-[0.3em] text-cream/40 mb-2">
+            {photoIndex + 1} / {album.photos.length}
+          </p>
+        )}
         <p className="font-display text-xl md:text-2xl tracking-[0.2em] text-cream leading-tight">
           {album.title.toUpperCase()}
         </p>
-        <p className="font-body text-[9px] tracking-[0.3em] text-cream/40 mt-1">
-          {album.photos.length} {album.photos.length === 1 ? 'FOTO' : 'FOTOS'}
-        </p>
       </div>
-    </button>
+    </div>
   )
 }
 
 export default function GalleryClient({ albums }: { albums: AlbumWithPhotos[] }) {
   const [expanded, setExpanded] = useState(false)
   const [view, setView] = useState<'albums' | 'album'>('albums')
-  const [previewId, setPreviewId] = useState<string | null>(null)
   const [activeAlbumId, setActiveAlbumId] = useState<string | null>(null)
   const [lightbox, setLightbox] = useState<{ photos: Photo[]; index: number } | null>(null)
   const [lightboxClosing, setLightboxClosing] = useState(false)
   const [mounted, setMounted] = useState(false)
   const lightboxRef = useRef(lightbox)
   lightboxRef.current = lightbox
+  const audioRef = useRef<HTMLAudioElement | null>(null)
+  const fadeRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const albumsScrollRef = useRef<HTMLDivElement>(null)
+  const filmstripScrollRef = useRef<HTMLDivElement>(null)
+
+  const stopAudio = () => {
+    if (fadeRef.current) { clearInterval(fadeRef.current); fadeRef.current = null }
+    if (audioRef.current) { audioRef.current.pause(); audioRef.current.src = ''; audioRef.current = null }
+  }
+
+  const startAudio = (musicUrl: string) => {
+    stopAudio()
+    const audio = new Audio(musicUrl)
+    audio.loop = true
+    audio.volume = 0
+    audioRef.current = audio
+    audio.play().catch(() => {})
+    let step = 0
+    fadeRef.current = setInterval(() => {
+      step++
+      if (audioRef.current) audioRef.current.volume = Math.min((step / 20) * 0.65, 0.65)
+      if (step >= 20) { clearInterval(fadeRef.current!); fadeRef.current = null }
+    }, 60)
+  }
+
+  const scrollStrip = (ref: React.RefObject<HTMLDivElement | null>, dir: 'left' | 'right') => {
+    const el = ref.current
+    if (!el) return
+    el.scrollBy({ left: dir === 'right' ? el.clientWidth * 0.75 : -el.clientWidth * 0.75, behavior: 'smooth' })
+  }
 
   useEffect(() => setMounted(true), [])
 
+  // Cleanup de audio al desmontar
+  useEffect(() => () => { stopAudio() }, [])
+
   const handleToggle = () => {
     if (expanded) {
+      stopAudio()
       setView('albums')
-      setPreviewId(null)
       setActiveAlbumId(null)
     }
     setExpanded(v => !v)
   }
 
   const handleAlbumClick = (albumId: string) => {
-    if (previewId === albumId) {
-      setActiveAlbumId(albumId)
-      setView('album')
-      setPreviewId(null)
-    } else {
-      setPreviewId(albumId)
-    }
+    const musicUrl = albums.find(a => a.id === albumId)?.music_url
+    if (musicUrl) startAudio(musicUrl)
+    else stopAudio()
+    setActiveAlbumId(albumId)
+    setView('album')
   }
 
   const handleBack = () => {
+    stopAudio()
     setView('albums')
     setActiveAlbumId(null)
-    setPreviewId(null)
   }
 
   const closeLightbox = useCallback(() => {
@@ -250,15 +293,26 @@ export default function GalleryClient({ albums }: { albums: AlbumWithPhotos[] })
               {view === 'albums' ? (
                 /* ── Albums grid ── */
                 <div className="py-8 md:py-12">
-                  <div className="flex gap-3 md:gap-4 overflow-x-auto px-6 md:px-12 lg:px-24 pb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    {albums.map(album => (
-                      <AlbumCard
-                        key={album.id}
-                        album={album}
-                        isPreviewing={previewId === album.id}
-                        onClick={() => handleAlbumClick(album.id)}
-                      />
-                    ))}
+                  <div className="relative group/albums">
+                    <button
+                      onClick={() => scrollStrip(albumsScrollRef, 'left')}
+                      className="absolute left-0 top-0 bottom-6 z-10 w-10 md:w-14 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 bg-gradient-to-r from-[#141414]/80 to-transparent"
+                      aria-label="Anterior"
+                    >‹</button>
+                    <div ref={albumsScrollRef} className="flex gap-3 md:gap-4 overflow-x-auto px-6 md:px-12 lg:px-24 pb-6 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {albums.map(album => (
+                        <AlbumCard
+                          key={album.id}
+                          album={album}
+                          onClick={() => handleAlbumClick(album.id)}
+                        />
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => scrollStrip(albumsScrollRef, 'right')}
+                      className="absolute right-0 top-0 bottom-6 z-10 w-10 md:w-14 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 bg-gradient-to-l from-[#141414]/80 to-transparent"
+                      aria-label="Siguiente"
+                    >›</button>
                   </div>
                 </div>
               ) : activeAlbum ? (
@@ -279,23 +333,36 @@ export default function GalleryClient({ albums }: { albums: AlbumWithPhotos[] })
                   </div>
 
                   {/* Strip */}
-                  <div className="flex gap-2 overflow-x-auto px-6 md:px-12 lg:px-24 pb-8 md:pb-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                    {activeAlbum.photos.map((photo, i) => (
-                      <button
-                        key={photo.id}
-                        onClick={() => setLightbox({ photos: activeAlbum.photos, index: i })}
-                        className="flex-none cursor-zoom-in overflow-hidden group"
-                        style={{ height: 'clamp(240px, 52vh, 460px)' }}
-                        aria-label={photo.caption ?? `Foto ${i + 1}`}
-                      >
-                        <img
-                          src={photo.url}
-                          alt={photo.caption ?? ''}
-                          className="h-full w-auto block object-cover transition-transform duration-500 group-hover:scale-[1.02]"
-                          loading="lazy"
-                        />
-                      </button>
-                    ))}
+                  <div className="relative">
+                    <button
+                      onClick={() => scrollStrip(filmstripScrollRef, 'left')}
+                      className="absolute left-0 top-0 bottom-8 md:bottom-12 z-10 w-10 md:w-14 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 bg-gradient-to-r from-[#1a1a1a]/80 to-transparent"
+                      aria-label="Anterior"
+                    >‹</button>
+                    <div ref={filmstripScrollRef} className="flex gap-2 overflow-x-auto px-6 md:px-12 lg:px-24 pb-8 md:pb-12 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {activeAlbum.photos.map((photo, i) => (
+                        <button
+                          key={photo.id}
+                          onClick={() => setLightbox({ photos: activeAlbum.photos, index: i })}
+                          className="flex-none cursor-zoom-in overflow-hidden group"
+                          style={{ height: 'clamp(240px, 52vh, 460px)' }}
+                          aria-label={photo.caption ?? `Foto ${i + 1}`}
+                        >
+                          <img
+                            src={photo.url}
+                            alt={photo.caption ?? ''}
+                            className="h-full w-auto block transition-transform duration-500 group-hover:scale-[1.02]"
+                            style={{ imageOrientation: 'from-image' }}
+                            loading="lazy"
+                          />
+                        </button>
+                      ))}
+                    </div>
+                    <button
+                      onClick={() => scrollStrip(filmstripScrollRef, 'right')}
+                      className="absolute right-0 top-0 bottom-8 md:bottom-12 z-10 w-10 md:w-14 flex items-center justify-center text-cream/20 hover:text-cream/70 transition-colors duration-200 bg-gradient-to-l from-[#1a1a1a]/80 to-transparent"
+                      aria-label="Siguiente"
+                    >›</button>
                   </div>
                 </div>
               ) : null}
