@@ -58,6 +58,7 @@ export interface Album {
   id: string
   title: string
   order_index: number
+  music_url: string | null
   created_at: string
 }
 

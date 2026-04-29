@@ -33,6 +33,38 @@ export async function deleteAlbum(id: string) {
   return { success: true }
 }
 
+export async function getMusicUploadUrl(albumId: string, ext: string) {
+  const supabase = createServiceClient()
+  const fileName = `music/track-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+  const { data, error } = await supabase.storage.from('photos').createSignedUploadUrl(fileName)
+  if (error || !data) return { error: 'Error generando URL de subida' }
+  return { signedUrl: data.signedUrl, token: data.token, path: data.path }
+}
+
+export async function updateAlbumMusic(id: string, musicUrl: string) {
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from('albums')
+    .update({ music_url: musicUrl })
+    .eq('id', id)
+  if (error) return { error: 'Error al guardar la música' }
+  revalidatePath('/')
+  revalidatePath('/dashboard/photos')
+  return { success: true }
+}
+
+export async function removeAlbumMusic(id: string) {
+  const supabase = createServiceClient()
+  const { error } = await supabase
+    .from('albums')
+    .update({ music_url: null })
+    .eq('id', id)
+  if (error) return { error: 'Error al eliminar la música' }
+  revalidatePath('/')
+  revalidatePath('/dashboard/photos')
+  return { success: true }
+}
+
 export async function renameAlbum(id: string, title: string) {
   const supabase = createServiceClient()
   const { error } = await supabase
