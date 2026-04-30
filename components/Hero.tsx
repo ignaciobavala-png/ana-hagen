@@ -63,13 +63,7 @@ export default async function Hero() {
         >
           ANA
           <br />
-          <span className="relative inline-block">
-            HAGEN
-            <span
-              className="absolute -bottom-2 left-0 right-0 h-3 bg-accent -z-10"
-              aria-hidden="true"
-            />
-          </span>
+          HAGEN
         </h1>
 
         {/* Subtítulo */}

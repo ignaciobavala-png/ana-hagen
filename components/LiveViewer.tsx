@@ -74,7 +74,7 @@ export default function LiveViewer({ initial }: Props) {
                 </span>
               </div>
               <div className="relative z-10 max-w-md">
-                <p className="font-body text-xs tracking-[0.4em] uppercase text-accent mb-4">Streaming en vivo</p>
+                <p className="font-body text-xs tracking-[0.4em] uppercase text-cream/70 mb-4">Streaming en vivo</p>
                 <h2 className="font-display text-[clamp(2.5rem,6vw,5rem)] leading-none tracking-tight text-cream mb-5">
                   SINTONIZÁ<br />EN VIVO
                 </h2>
@@ -85,7 +85,7 @@ export default function LiveViewer({ initial }: Props) {
                   href="https://www.instagram.com/anahagen__/"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 mt-7 font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/55 hover:text-accent transition-colors duration-200 group"
+                  className="inline-flex items-center gap-2 mt-7 font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/55 hover:text-cream transition-colors duration-200 group"
                 >
                   <span>Seguir en Instagram</span>
                   <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
@@ -95,13 +95,13 @@ export default function LiveViewer({ initial }: Props) {
                 {BAR_HEIGHTS.map((h, i) => (
                   <div
                     key={i}
-                    className="w-1.5 rounded-full bg-accent/15 animate-pulse"
+                    className="w-1.5 rounded-full bg-cream/15 animate-pulse"
                     style={{ height: `${h}%`, animationDelay: `${(i * 0.08).toFixed(2)}s`, animationDuration: `${1.2 + (i % 5) * 0.3}s` }}
                   />
                 ))}
               </div>
             </div>
-            <div className="h-px bg-gradient-to-r from-transparent via-accent/15 to-transparent" />
+            <div className="h-px bg-gradient-to-r from-transparent via-cream/15 to-transparent" />
           </div>
         </div>
       </div>
@@ -113,7 +113,7 @@ export default function LiveViewer({ initial }: Props) {
     <section id="live" className="text-cream relative overflow-hidden" style={{ background: '#1f1f1f' }}>
 
       {/* Barra EN VIVO */}
-      <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3 bg-accent">
+      <div className="flex items-center gap-3 px-6 md:px-12 lg:px-24 py-3 bg-ink/60">
         <span className="relative flex h-2.5 w-2.5 shrink-0">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-cream opacity-75" />
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-cream" />

@@ -84,7 +84,7 @@ function Equalizer() {
         {[0, 0.18, 0.09, 0.27].map((delay, i) => (
           <div
             key={i}
-            className="w-[3px] bg-accent rounded-full origin-bottom"
+            className="w-[3px] bg-cream rounded-full origin-bottom"
             style={{
               height: '100%',
               animation: `eq ${0.55 + i * 0.12}s ease-in-out infinite`,
@@ -191,7 +191,7 @@ export default function MusicPlayer({ tracks }: Props) {
           MUSIC
         </span>
         {currentTrack ? (
-          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-accent/80 group-hover:text-accent transition-colors duration-200">
+          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-cream/80 group-hover:text-cream transition-colors duration-200">
             · {tracks.length} {tracks.length === 1 ? 'track' : 'tracks'}
           </span>
         ) : (
@@ -246,7 +246,7 @@ export default function MusicPlayer({ tracks }: Props) {
           <div className="py-20 md:py-28 overflow-hidden relative" style={{ background: 'linear-gradient(180deg, #1f1f1f 0%, #171717 100%)' }}>
 
             {/* Franja accent */}
-            <div className="absolute top-0 left-0 right-0 h-[3px] bg-accent z-20" aria-hidden="true" />
+            <div className="absolute top-0 left-0 right-0 h-[3px] bg-cream/20 z-20" aria-hidden="true" />
 
             {/* Cover bleeding — arte del track activo, borroso al fondo */}
             {currentTrack.cover_url && (
@@ -291,15 +291,15 @@ export default function MusicPlayer({ tracks }: Props) {
                   >
                     <div
                       className={`relative aspect-square overflow-hidden border transition-all duration-500 ${
-                        active ? 'border-accent/50' : 'border-cream/10 group-hover:border-cream/20'
+                        active ? 'border-cream/50' : 'border-cream/10 group-hover:border-cream/20'
                       }`}
-                      style={active && state.isPlaying ? { boxShadow: '0 8px 48px rgba(155,78,184,0.35)' } : undefined}
+                      style={active && state.isPlaying ? { boxShadow: '0 8px 48px rgba(250,247,242,0.15)' } : undefined}
                     >
                       {track.cover_url ? (
                         <img src={track.cover_url} alt={track.title} className="w-full h-full object-cover" />
                       ) : (
                         <div className={`w-full h-full bg-gradient-to-br ${CARD_GRADIENTS[idx % CARD_GRADIENTS.length]} flex items-center justify-center`}>
-                          <span className="font-display text-[4rem] leading-none text-accent/20 select-none">
+                          <span className="font-display text-[4rem] leading-none text-cream/20 select-none">
                             {String(idx + 1).padStart(2, '0')}
                           </span>
                         </div>
@@ -318,12 +318,12 @@ export default function MusicPlayer({ tracks }: Props) {
                         )}
                       </div>
 
-                      {active && <div className="absolute top-0 right-0 w-3 h-3 bg-accent" aria-hidden="true" />}
+                      {active && <div className="absolute top-0 right-0 w-3 h-3 bg-cream/50" aria-hidden="true" />}
                     </div>
 
                     <div className="mt-3">
                       <p className={`font-display text-sm md:text-[15px] leading-snug tracking-wide truncate transition-colors duration-200 ${
-                        active ? 'text-accent' : 'text-cream/50 group-hover:text-cream/80'
+                        active ? 'text-cream' : 'text-cream/50 group-hover:text-cream/80'
                       }`}>
                         {track.title}
                       </p>
@@ -348,9 +348,9 @@ export default function MusicPlayer({ tracks }: Props) {
                 aria-valuenow={progress}
               >
                 <div className="w-full h-[2px] bg-cream/[0.08] relative">
-                  <div className="h-full bg-accent transition-none" style={{ width: `${progress}%` }} />
+                  <div className="h-full bg-cream transition-none" style={{ width: `${progress}%` }} />
                   <div
-                    className={`absolute top-1/2 w-2.5 h-2.5 rounded-full bg-accent -translate-y-1/2 -translate-x-1/2 transition-opacity duration-150 ${
+                    className={`absolute top-1/2 w-2.5 h-2.5 rounded-full bg-cream -translate-y-1/2 -translate-x-1/2 transition-opacity duration-150 ${
                       state.isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                     }`}
                     style={{ left: `${progress}%` }}
@@ -371,7 +371,7 @@ export default function MusicPlayer({ tracks }: Props) {
 
                 {/* Track info */}
                 <div className="min-w-0 flex-1 text-center sm:text-left">
-                  <p className={`font-body text-[10px] tracking-[0.35em] uppercase mb-1 ${state.isPlaying ? 'text-accent' : 'text-cream/50'}`}>
+                  <p className={`font-body text-[10px] tracking-[0.35em] uppercase mb-1 ${state.isPlaying ? 'text-cream' : 'text-cream/50'}`}>
                     {loading ? 'Cargando…' : state.isPlaying ? '▶ Reproduciendo' : 'En pausa'}
                   </p>
                   <p className="font-display text-xl md:text-2xl leading-tight tracking-wide text-cream truncate">
@@ -386,7 +386,7 @@ export default function MusicPlayer({ tracks }: Props) {
                   <div className="flex items-center justify-center sm:justify-start gap-4 sm:gap-4">
                     <button
                       onClick={() => setShuffled(v => !v)}
-                      className={`hidden sm:block p-2 -m-2 transition-colors ${shuffled ? 'text-accent' : 'text-cream/35 hover:text-cream/70'}`}
+                      className={`hidden sm:block p-2 -m-2 transition-colors ${shuffled ? 'text-cream' : 'text-cream/35 hover:text-cream/70'}`}
                       aria-label="Shuffle"
                       title="Aleatorio"
                     >
@@ -409,7 +409,7 @@ export default function MusicPlayer({ tracks }: Props) {
                     <button
                       onClick={toggle}
                       disabled={loading}
-                      className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-accent hover:bg-accent-dark flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-accent/30 disabled:opacity-70"
+                      className="w-14 h-14 sm:w-12 sm:h-12 rounded-full bg-cream/20 hover:bg-cream/30 flex items-center justify-center transition-colors text-cream shrink-0 shadow-lg shadow-black/20 disabled:opacity-70"
                       aria-label={state.isPlaying ? 'Pausar' : 'Reproducir'}
                     >
                       {loading ? (
@@ -445,7 +445,7 @@ export default function MusicPlayer({ tracks }: Props) {
                   <div className="flex items-center justify-between sm:hidden px-1">
                     <button
                       onClick={() => setShuffled(v => !v)}
-                      className={`p-2 -m-2 transition-colors ${shuffled ? 'text-accent' : 'text-cream/30'}`}
+                      className={`p-2 -m-2 transition-colors ${shuffled ? 'text-cream' : 'text-cream/30'}`}
                       aria-label="Shuffle"
                     >
                       <IconShuffle />

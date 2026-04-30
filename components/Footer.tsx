@@ -44,7 +44,7 @@ export default async function Footer() {
                     href={link.href}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/40 hover:text-accent transition-colors duration-200"
+                    className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/40 hover:text-cream transition-colors duration-200"
                   >
                     {link.label}
                   </a>
@@ -58,7 +58,7 @@ export default async function Footer() {
           href="https://petralabs.xyz"
           target="_blank"
           rel="noopener noreferrer"
-          className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/40 hover:text-accent transition-colors duration-200"
+          className="font-body text-xs font-semibold tracking-[0.2em] uppercase text-cream/40 hover:text-cream transition-colors duration-200"
         >
           Petra Labs
         </a>

@@ -35,7 +35,7 @@ export default function DatesSection({ events }: { events: Event[] }) {
         </span>
 
         {hasEvents ? (
-          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-accent/80 group-hover:text-accent transition-colors duration-200">
+          <span className="font-body text-[10px] tracking-[0.3em] uppercase text-cream/80 group-hover:text-cream transition-colors duration-200">
             · {events.length} {events.length === 1 ? 'show' : 'shows'}
           </span>
         ) : (
@@ -88,12 +88,12 @@ export default function DatesSection({ events }: { events: Event[] }) {
                     return (
                       <div
                         key={event.id}
-                        className="group relative grid grid-cols-[auto_1fr_auto] md:grid-cols-[100px_1fr_auto] items-center gap-6 py-7 border-b border-cream/[0.08] hover:border-accent/40 transition-colors duration-300 cursor-default"
+                        className="group relative grid grid-cols-[auto_1fr_auto] md:grid-cols-[100px_1fr_auto] items-center gap-6 py-7 border-b border-cream/[0.08] hover:border-cream/40 transition-colors duration-300 cursor-default"
                       >
-                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-accent scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" />
+                        <div className="absolute left-0 top-0 bottom-0 w-[2px] bg-cream/50 scale-y-0 group-hover:scale-y-100 transition-transform duration-300 origin-top" />
 
                         <div className="flex flex-col leading-none min-w-[70px]">
-                          <span className="font-display text-[2rem] md:text-[2.8rem] leading-none text-accent group-hover:text-cream transition-colors duration-300">
+                          <span className="font-display text-[2rem] md:text-[2.8rem] leading-none text-cream/80 group-hover:text-cream transition-colors duration-300">
                             {day}
                           </span>
                           <span className="font-body text-[10px] tracking-[0.2em] uppercase text-cream/55 mt-1">
@@ -120,7 +120,7 @@ export default function DatesSection({ events }: { events: Event[] }) {
                               <img
                                 src={event.flyer_url}
                                 alt={`Flyer ${event.venue}`}
-                                className="h-14 w-10 object-cover border border-cream/10 group-hover:border-accent/50 transition-colors"
+                                className="h-14 w-10 object-cover border border-cream/10 group-hover:border-cream/50 transition-colors"
                               />
                             </a>
                           )}
@@ -131,7 +131,7 @@ export default function DatesSection({ events }: { events: Event[] }) {
                             href={event.ticket_link}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="font-body text-xs font-semibold tracking-[0.2em] uppercase border border-cream/20 px-5 py-3 text-cream/60 hover:bg-accent hover:border-accent hover:text-cream transition-all duration-200 whitespace-nowrap"
+                            className="font-body text-xs font-semibold tracking-[0.2em] uppercase border border-cream/20 px-5 py-3 text-cream/60 hover:bg-cream/20 hover:border-cream hover:text-cream transition-all duration-200 whitespace-nowrap"
                           >
                             ENTRADAS
                           </a>

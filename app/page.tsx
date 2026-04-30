@@ -8,13 +8,11 @@ import PlaylistSection from "@/components/PlaylistSection";
 import Booking from "@/components/Booking";
 import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
-import ScrollLine from "@/components/ScrollLine";
 
 export default function Home() {
   return (
     <main className="overflow-hidden">
       <ScrollReveal />
-      <ScrollLine />
       <Hero />
       <LiveSection />
       <Dates />
